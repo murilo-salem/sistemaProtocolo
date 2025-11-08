@@ -1,0 +1,253 @@
+<!-- ============================================================================ -->
+<!-- ARQUIVO: app/resources/dashboard_gestor.html -->
+<!-- ============================================================================ -->
+
+<div class="container-fluid animated fadeIn">
+    <section name="{main}">
+        <!-- ======= CARDS PRINCIPAIS ======= -->
+        <div class="row">
+            <!-- Clientes -->
+            <div class="col-lg-3 col-md-6 col-sm-6">
+                <div class="info-card gradient-aqua shadow-lg">
+                    <div class="icon"><i class="fa fa-users"></i></div>
+                    <div class="content">
+                        <h5>Clientes Ativos</h5>
+                        <h2>{total_clientes}</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projetos -->
+            <div class="col-lg-3 col-md-6 col-sm-6">
+                <div class="info-card gradient-green shadow-lg">
+                    <div class="icon"><i class="fa fa-briefcase"></i></div>
+                    <div class="content">
+                        <h5>Projetos Ativos</h5>
+                        <h2>{total_projetos}</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pendentes -->
+            <div class="col-lg-3 col-md-6 col-sm-6">
+                <div class="info-card gradient-yellow shadow-lg">
+                    <div class="icon"><i class="fa fa-clock-o"></i></div>
+                    <div class="content">
+                        <h5>Entregas Pendentes</h5>
+                        <h2>{entregas_pendentes}</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aprovadas -->
+            <div class="col-lg-3 col-md-6 col-sm-6">
+                <div class="info-card gradient-red shadow-lg">
+                    <div class="icon"><i class="fa fa-check-circle"></i></div>
+                    <div class="content">
+                        <h5>Entregas Aprovadas</h5>
+                        <h2>{entregas_aprovadas}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======= VISÃO GERAL ======= -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="box box-primary shadow">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">
+                            <i class="fa fa-bar-chart"></i> Visão Geral do Mês Atual
+                        </h3>
+                    </div>
+                    <div class="box-body text-center">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="metric">
+                                    <span>Total de Entregas</span>
+                                    <h2 class="text-primary">{total_entregas}</h2>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric">
+                                    <span>Em Análise</span>
+                                    <h2 class="text-warning">{entregas_em_analise}</h2>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric">
+                                    <span>Rejeitadas</span>
+                                    <h2 class="text-danger">{entregas_rejeitadas}</h2>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric">
+                                    <span>Taxa de Aprovação</span>
+                                    <h2 class="text-success">{taxa_aprovacao}%</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======= AVISOS E AÇÕES ======= -->
+        <div class="row mt-4">
+            <!-- Atenção -->
+            <div class="col-md-6">
+                <div class="box box-warning shadow">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">
+                            <i class="fa fa-exclamation-triangle"></i> Atenção Necessária
+                        </h3>
+                    </div>
+                    <div class="box-body">
+                        <p><i class="fa fa-circle text-yellow"></i> <strong>{entregas_pendentes}</strong> entregas aguardando envio</p>
+                        <p><i class="fa fa-circle text-orange"></i> <strong>{entregas_em_analise}</strong> entregas para validar</p>
+                        <p><i class="fa fa-circle text-red"></i> <strong>{entregas_atrasadas}</strong> entregas com atraso</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ações -->
+            <div class="col-md-6">
+                <div class="box box-success shadow">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">
+                            <i class="fa fa-rocket"></i> Ações Rápidas
+                        </h3>
+                    </div>
+                    <div class="box-body">
+                        <a href="index.php?class=ProjetoForm" class="btn btn-success btn-lg btn-block">
+                            <i class="fa fa-plus"></i> Novo Projeto
+                        </a>
+                        <a href="index.php?class=ClienteForm" class="btn btn-primary btn-lg btn-block">
+                            <i class="fa fa-user-plus"></i> Novo Cliente
+                        </a>
+                        <a href="index.php?class=EntregaList" class="btn btn-warning btn-lg btn-block">
+                            <i class="fa fa-search"></i> Ver Todas as Entregas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ======= ESTILO ======= -->
+<style>
+/* ===== RESET BÁSICO ===== */
+body, h1, h2, h3, h4, h5, h6, p {
+    margin: 0; padding: 0;
+}
+
+/* ===== INFO CARDS ===== */
+.info-card {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    background: #fff;
+    color: #fff;
+    border-radius: 12px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    transition: all 0.25s ease;
+}
+.info-card .icon {
+    font-size: 48px;
+    margin-right: 15px;
+    opacity: 0.9;
+}
+.info-card .content h5 {
+    font-size: 14px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    letter-spacing: 0.5px;
+}
+.info-card .content h2 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+}
+.info-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+/* ===== GRADIENTES ===== */
+.gradient-aqua { background: linear-gradient(135deg, #00c6ff, #0072ff); }
+.gradient-green { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+.gradient-yellow { background: linear-gradient(135deg, #f7971e, #ffd200); }
+.gradient-red { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
+
+/* ===== BOX ===== */
+.box {
+    background: #fff;
+    border-radius: 10px;
+    border: none;
+    margin-bottom: 25px;
+    transition: all 0.3s ease;
+}
+.box:hover {
+    transform: translateY(-3px);
+}
+.box-header {
+    padding: 12px 20px;
+    border-bottom: 1px solid #eee;
+    background: #fafafa;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+.box-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #444;
+}
+.box-body {
+    padding: 20px;
+}
+
+/* ===== MÉTRICAS ===== */
+.metric span {
+    display: block;
+    text-transform: uppercase;
+    color: #777;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+.metric h2 {
+    font-weight: 700;
+    font-size: 28px;
+}
+
+/* ===== BOTÕES ===== */
+.btn-lg {
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: 0.25s ease;
+}
+.btn-lg:hover {
+    opacity: 0.9;
+    transform: scale(1.03);
+}
+
+/* ===== SOMBRAS ===== */
+.shadow {
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.shadow-lg {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* ===== CORES DE TEXTO ===== */
+.text-primary { color: #007bff !important; }
+.text-success { color: #28a745 !important; }
+.text-warning { color: #ffc107 !important; }
+.text-danger  { color: #dc3545 !important; }
+
+/* ===== MARGENS ===== */
+.mt-4 { margin-top: 25px; }
+</style>

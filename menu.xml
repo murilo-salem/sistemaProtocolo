@@ -1,0 +1,68 @@
+<menu>
+    <!-- Menu público: Login -->
+    <menuitem label="Login">
+        <icon>fa-sign-in</icon>
+        <action>LoginForm</action>
+    </menuitem>
+
+    <!-- Menu para GESTOR -->
+    <menuitem label="Dashboard">
+        <icon>fa-dashboard</icon>
+        <action>DashboardGestor</action>
+        <permissions>gestor</permissions>
+    </menuitem>
+    
+        <menuitem label="Cadastros">
+        <icon>fa-folder</icon>
+        <permissions>gestor</permissions>
+        <menu>
+            <menuitem label="Projetos">
+                <icon>fa-briefcase</icon>
+                <action>ProjetoList</action>
+            </menuitem>
+            <menuitem label="Novo Projeto">
+                <icon>fa-plus</icon>
+                <action>ProjetoForm</action>
+            </menuitem>
+            <menuitem label="Clientes">
+                <icon>fa-users</icon>
+                <action>ClienteList</action>
+            </menuitem>
+            <menuitem label="Novo Cliente">
+            <icon>fa-user-plus</icon>
+            <action>ClienteForm</action>
+        </menuitem>
+        </menu>
+    </menuitem>
+
+    
+    <menuitem label="Entregas">
+        <icon>fa-file-text</icon>
+        <permissions>gestor</permissions>
+        <menu>
+            <menuitem label="Listar Entregas">
+                <icon>fa-list</icon>
+                <action>EntregaList</action>
+            </menuitem>
+        </menu>
+    </menuitem>
+    
+    <!-- Menu para CLIENTE -->
+    <menuitem label="Meu Dashboard">
+        <icon>fa-home</icon>
+        <action>DashboardCliente</action>
+        <permissions>cliente</permissions>
+    </menuitem>
+    
+    <menuitem label="Minhas Entregas">
+        <icon>fa-upload</icon>
+        <action>DashboardCliente</action>
+        <permissions>cliente</permissions>
+    </menuitem>
+    
+    <!-- Menu comum -->
+    <menuitem label="Sair">
+        <icon>fa-sign-out</icon>
+        <action>LoginForm#method=onLogout</action>
+    </menuitem>
+</menu>
