@@ -1,0 +1,53 @@
+<menu>
+    <menuitem label="Dashboard">
+        <icon>fa-dashboard</icon>
+        <action>DashboardGestor</action>
+    </menuitem>
+    
+    <menuitem label="Cadastros">
+        <icon>fa-folder</icon>
+        <menu>
+            <menuitem label="Projetos">
+                <icon>fa-briefcase</icon>
+                <action>ProjetoList</action>
+            </menuitem>
+            <menuitem label="Novo Projeto">
+                <icon>fa-plus</icon>
+                <action>ProjetoForm</action>
+            </menuitem>
+            <menuitem label="Clientes">
+                <icon>fa-users</icon>
+                <action>ClienteList</action>
+            </menuitem>
+            <menuitem label="Novo Cliente">
+                <icon>fa-user-plus</icon>
+                <action>ClienteForm</action>
+            </menuitem>
+        </menu>
+    </menuitem>
+
+    <menuitem label="Entregas">
+        <icon>fa-file-text</icon>
+        <menu>
+            <menuitem label="Listar Entregas">
+                <icon>fa-list</icon>
+                <action>EntregaList</action>
+            </menuitem>
+        </menu>
+    </menuitem>
+    
+    <menuitem label="Histórico">
+        <icon>fa-history</icon>
+        <action>HistoricoList</action>
+    </menuitem>
+    
+    <menuitem label="Chat">
+        <icon>fa-comments-o</icon>
+        <action>SystemChat</action>
+    </menuitem>
+
+    <menuitem label="Sair">
+        <icon>fa-sign-out</icon>
+        <action>LoginForm#method=onLogout</action>
+    </menuitem>
+</menu>

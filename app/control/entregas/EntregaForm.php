@@ -21,10 +21,19 @@ class EntregaForm extends TPage
 
         $this->form->addFields([$cliente_field, $projeto_field]);
 
-        TTransaction::open('database');
-        $projeto = new Projeto($projeto_id);
-        $docs = json_decode($projeto->documentos_json, true);
-        TTransaction::close();
+        // Load documents from the normalized table
+        $docs = [];
+        if ($projeto_id) {
+            TTransaction::open('database');
+            $projeto = new Projeto($projeto_id);
+            $doc_items = ProjetoDocumento::where('projeto_id', '=', $projeto_id)->load();
+            if ($doc_items) {
+                foreach ($doc_items as $doc_item) {
+                    $docs[] = $doc_item->nome_documento;
+                }
+            }
+            TTransaction::close();
+        }
 
         if ($docs) {
             foreach ($docs as $doc) {
@@ -51,7 +60,7 @@ class EntregaForm extends TPage
 
         $container = new TVBox;
         $container->style = 'width: 100%';
-        $container->add(new TXMLBreadCrumb('menu.xml', __CLASS__));
+        $container->add(new TXMLBreadCrumb('menu-cliente.xml', __CLASS__));
         $container->add($this->form);
         parent::add($container);
     }
@@ -66,21 +75,37 @@ class EntregaForm extends TPage
             $mes = $param['mes_referencia'];
             $ano = $param['ano_referencia'];
 
-            $projeto = new Projeto($projeto_id);
-            $docs = json_decode($projeto->documentos_json, true);
+            // Load documents from normalized table
+            $doc_items = ProjetoDocumento::where('projeto_id', '=', $projeto_id)->load();
+            $docs = [];
+            if ($doc_items) {
+                foreach ($doc_items as $doc_item) {
+                    $docs[] = $doc_item->nome_documento;
+                }
+            }
 
             $documentos_salvos = [];
 
             foreach ($docs as $doc) {
                 $field = 'arquivo_' . md5($doc);
                 if (!empty($param[$field])) {
+                    // TFile uploads to 'tmp/' folder
                     $source = 'tmp/' . $param[$field];
-                    $destino = "app/uploads/projetos/{$projeto_id}/{$cliente_id}/{$param[$field]}";
-                    if (!file_exists(dirname($destino))) {
-                        mkdir(dirname($destino), 0777, true);
+                    
+                    // If file doesn't exist in tmp/, try without tmp/
+                    if (!file_exists($source)) {
+                        $source = $param[$field];
                     }
-                    rename($source, $destino);
-                    $documentos_salvos[$doc] = $destino;
+                    
+                    if (file_exists($source)) {
+                        $destino = "app/uploads/projetos/{$projeto_id}/{$cliente_id}/{$param[$field]}";
+                        if (!file_exists(dirname($destino))) {
+                            mkdir(dirname($destino), 0777, true);
+                        }
+                        copy($source, $destino);
+                        @unlink($source); // Remove temp file
+                        $documentos_salvos[$doc] = $destino;
+                    }
                 }
             }
 
@@ -101,5 +126,8 @@ class EntregaForm extends TPage
             TTransaction::rollback();
             new TMessage('error', $e->getMessage());
         }
+    }
+    public function onEdit($param)
+    {
     }
 }

@@ -1,45 +1,66 @@
 <!DOCTYPE html>
 <html class="notranslate" translate="no" data-bs-theme="light" data-menu-theme="dark">
+
 <head>
     <title>{title}</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link rel="manifest" href="manifest.json?appver=760">
-    <link rel="shortcut icon" type="image/png" href="favicon.png"/>
+    <link rel="shortcut icon" type="image/png" href="favicon.png" />
     <!-- Tell the browser to be responsive to screen width -->
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
     <link rel="apple-touch-icon" sizes="180x180" href="app/images/icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    
+
     {LIBRARIES}
     {HEAD}
-    
-    <script src="app/lib/include/admin.js?appver=830" type="text/javascript"></script>
-    <link href="app/lib/include/admin.css?appver=830" rel="stylesheet" type="text/css" media="screen">
-    
-    <script src="app/templates/{template}/js/theme.js?appver=830"></script>
-    <link rel="stylesheet" href="app/templates/{template}/theme.css?appver=830">
-    
+
+    <script src="app/lib/include/admin.js?appver=1001" type="text/javascript"></script>
+    <link href="app/lib/include/admin.css?appver=1001" rel="stylesheet" type="text/css" media="screen">
+
+    <script src="app/templates/{template}/js/theme.js?appver=1001"></script>
+    <link rel="stylesheet" href="app/templates/{template}/theme.css?appver=1001">
+    <link rel="stylesheet" href="app/templates/{template}/custom.css?appver=1001">
+
     <style>
-    .form-floating>div>.form-control {
-        padding: 1rem 0.75rem;
-    }
-    .tabpanel_two_factor_form {
-        padding: 2rem !important;
-    }
-    :root {
-        --ad-font-size: 1rem;
-    }
+        .form-floating>div>.form-control {
+            padding: 1rem 0.75rem;
+        }
+
+        .tabpanel_two_factor_form {
+            padding: 2rem !important;
+        }
+
+        :root {
+            --ad-font-size: 1rem;
+        }
+
+        /* CRITICAL OVERRIDES TO FORCE VERTICAL BOX DESIGN */
+        .login-panel {
+            width: 350px !important;
+            min-height: 550px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            padding: 40px 30px !important;
+        }
+
+        .wrapper .main .content {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            height: 100vh !important;
+        }
     </style>
     <script>
-        $(function() {
+        $(function () {
             // Start framework.
-            Adianti.configure({adianti_options});
+            Adianti.configure({ adianti_options });
             Adianti.start();
-            
+
             // Start template.
-            Template.configure({template_options}, 'login');
+            Template.configure({ template_options }, 'login');
             Template.start();
         });
     </script>
@@ -53,10 +74,16 @@
                     <!-- Where the framework content is injected -->
                     <div id="adianti_div_content"></div>
                 </div>
-                
+
                 <div id="adianti_online_content"></div>
             </main>
+            <div class="background-effects">
+                <div class="glow-orb glow-orb-1"></div>
+                <div class="glow-orb glow-orb-2"></div>
+                <div class="glow-orb glow-orb-3"></div>
+            </div>
         </div>
     </div>
 </body>
+
 </html>

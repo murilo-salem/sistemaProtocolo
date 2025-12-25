@@ -1,0 +1,27 @@
+<menu>
+    <menuitem label="Meu Dashboard">
+        <icon>fa-home</icon>
+        <action>DashboardCliente</action>
+    </menuitem>
+    
+     <menuitem label="Minhas Entregas">
+        <icon>fa-upload</icon>
+        <action>EntregaList</action>
+        <menu>
+            <menuitem label="Nova Entrega">
+                <icon>fa-plus</icon>
+                <action>EntregaForm</action>
+            </menuitem>
+        </menu>
+    </menuitem>
+
+    <menuitem label="Chat">
+        <icon>fa-comments-o</icon>
+        <action>SystemChat</action>
+    </menuitem>
+
+    <menuitem label="Sair">
+        <icon>fa-sign-out</icon>
+        <action>LoginForm#method=onLogout</action>
+    </menuitem>
+</menu>

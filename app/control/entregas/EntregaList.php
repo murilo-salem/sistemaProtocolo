@@ -83,6 +83,13 @@ class EntregaList extends TPage
         $action_validar = new TDataGridAction(['EntregaValidacao', 'onView'], ['id' => '{id}']);
         $this->datagrid->addAction($action_validar, 'Validar', 'fa:check green');
         
+        // Ação Consolidar (Apenas para Gestor e Status Aprovado)
+        $action_consolidar = new TDataGridAction(['ConsolidarEntrega', 'onConsolidar'], ['id' => '{id}']);
+        $action_consolidar->setDisplayCondition(function($object) {
+            return ($object->status == 'aprovado');
+        });
+        $this->datagrid->addAction($action_consolidar, 'Consolidar', 'fa:file-pdf-o orange');
+        
         $this->datagrid->createModel();
         
         $this->pageNavigation = new TPageNavigation;
@@ -94,7 +101,7 @@ class EntregaList extends TPage
         
         $container = new TVBox;
         $container->style = 'width: 100%';
-        $container->add(new TXMLBreadCrumb('menu.xml', __CLASS__));
+        $container->add(new TXMLBreadCrumb('menu-cliente.xml', __CLASS__));
         $container->add($this->form);
         $container->add($panel);
         
@@ -114,6 +121,11 @@ class EntregaList extends TPage
             TTransaction::open('database');
             
             $criteria = new TCriteria;
+            
+            // Se for cliente, filtra apenas suas entregas
+            if (TSession::getValue('usertype') != 'gestor') {
+                $criteria->add(new TFilter('cliente_id', '=', TSession::getValue('userid')));
+            }
             
             if ($filter = TSession::getValue('EntregaList_filter')) {
                 if ($filter->cliente_id) {

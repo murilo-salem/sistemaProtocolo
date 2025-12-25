@@ -128,7 +128,13 @@ class ProjetoList extends TPage
         try {
             TTransaction::open('database');
             
-            $projeto = new Projeto($param['id']);
+            $key = $param['id'];
+            
+            // Delete child documents first (cascade)
+            ProjetoDocumento::where('projeto_id', '=', $key)->delete();
+            
+            // Now delete the project
+            $projeto = new Projeto($key);
             $projeto->delete();
             
             TTransaction::close();

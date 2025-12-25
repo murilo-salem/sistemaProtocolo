@@ -1,0 +1,417 @@
+/* PUBLIC_PAGE - Theme: adminbs5 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --font-family-sans-serif: 'Inter', system-ui, -apple-system, sans-serif;
+
+    /* Light Dynamic Palette */
+    --primary-gradient: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    --primary-color: #23a6d5;
+    --text-primary: #1F2937;
+    --text-muted: #6B7280;
+
+    /* Surfaces */
+    --bg-body: #F3F4F6;
+    --card-bg: rgba(255, 255, 255, 0.9);
+    --border-color: rgba(0, 0, 0, 0.05);
+
+    /* Effects */
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --radius-lg: 24px;
+}
+
+body {
+    font-family: var(--font-family-sans-serif) !important;
+    background-color: var(--bg-body) !important;
+    color: var(--text-primary);
+}
+
+/* ============================
+   LOGIN PAGE (Light Dynamic)
+   ============================ */
+.login-page,
+.wrapper .main {
+    background: var(--primary-gradient) !important;
+    background-size: 400% 400% !important;
+    animation: gradientBG 15s ease infinite !important;
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes gradientBG {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Flexbox Centering */
+.wrapper .main .content {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 100vh !important;
+    padding: 0 !important;
+}
+
+/* Login Card Container - Vertical Box */
+.login-panel {
+    background: var(--card-bg) !important;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--shadow-lg) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    /* Vertical Dimensions */
+    width: 350px !important;
+    min-height: 550px !important;
+
+    padding: 40px 30px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+
+    position: relative;
+    z-index: 10;
+    transition: transform 0.3s ease;
+}
+
+.login-panel:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.login-panel .card-header {
+    background: transparent !important;
+    border-bottom: none !important;
+    text-align: center;
+    padding-bottom: 2rem !important;
+}
+
+.login-panel .card-header .name {
+    font-size: 2rem;
+    font-weight: 700;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* Input Fields */
+.login-panel .form-control {
+    background-color: #F9FAFB !important;
+    border: 1px solid #E5E7EB !important;
+    border-radius: 12px !important;
+    padding: 1rem !important;
+    color: var(--text-primary);
+    font-size: 15px;
+    transition: all 0.2s ease;
+}
+
+.login-panel .form-control:focus {
+    background-color: #FFFFFF !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(35, 166, 213, 0.1) !important;
+}
+
+.login-panel .input-group-text {
+    background-color: #F9FAFB !important;
+    border: 1px solid #E5E7EB !important;
+    border-right: none !important;
+    color: var(--text-muted);
+}
+
+.login-panel .form-control {
+    border-left: none !important;
+}
+
+/* Login Button */
+.login-panel .btn-primary {
+    background: var(--primary-gradient) !important;
+    background-size: 200% auto !important;
+    border: none !important;
+    border-radius: 50px !important;
+    /* Pill shape */
+    padding: 1rem !important;
+    color: white !important;
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 100%;
+    margin-top: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: 0.5s;
+}
+
+.login-panel .btn-primary:hover {
+    background-position: right center !important;
+    /* change the direction of the change here */
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================
+   INTERNAL APP / DASHBOARD (Light Mode)
+   ============================ */
+aside.main-sidebar {
+    background: #FFFFFF !important;
+    border-right: 1px solid #E5E7EB;
+}
+
+aside.main-sidebar a {
+    color: var(--text-muted) !important;
+}
+
+aside.main-sidebar a:hover {
+    background-color: #F3F4F6 !important;
+    color: var(--primary-color) !important;
+}
+
+aside.main-sidebar .name {
+    color: var(--text-primary) !important;
+}
+
+nav.navbar {
+    background-color: #FFFFFF !important;
+    border-bottom: 1px solid #E5E7EB !important;
+}
+
+.navbar .btn {
+    color: var(--text-muted) !important;
+}
+
+.card,
+.panel {
+    background-color: #FFFFFF !important;
+    border: 1px solid #E5E7EB !important;
+    color: var(--text-primary);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+}
+
+.card-header {
+    background-color: #F9FAFB !important;
+    border-bottom: 1px solid #E5E7EB !important;
+    color: var(--text-primary);
+}
+
+.table {
+    color: var(--text-primary);
+}
+
+.table thead th {
+    background-color: #F9FAFB !important;
+    color: var(--text-muted);
+    border-bottom: 1px solid #E5E7EB !important;
+}
+
+.table tbody td {
+    border-bottom: 1px solid #E5E7EB;
+}
+
+/* Chat Styles */
+.chat-container {
+    display: flex;
+    height: calc(100vh - 140px);
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.chat-list-panel {
+    width: 25%;
+    min-width: 250px;
+    border-right: 1px solid #eee;
+    background: #fcfcfc;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-list-header {
+    padding: 20px;
+    font-weight: bold;
+    color: #333;
+    border-bottom: 1px solid #eee;
+}
+
+.chat-contact-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.chat-contact {
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 1px solid #f5f5f5;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chat-contact:hover,
+.chat-contact.active {
+    background: #f0f7ff;
+}
+
+.chat-contact-avatar {
+    width: 40px;
+    height: 40px;
+    background: #e0e0e0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #555;
+    font-size: 14px;
+}
+
+.chat-contact-info h3 {
+    margin: 0;
+    font-size: 15px;
+    color: #333;
+}
+
+.chat-contact-info p {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: #888;
+}
+
+.chat-main-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+}
+
+/* Extended Chat Styles */
+.chat-window-header {
+    height: 70px;
+    border-bottom: 1px solid #eee;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    flex-shrink: 0;
+}
+
+.chat-last-message {
+    color: #999;
+    font-size: 13px;
+    margin: 2px 0 0 !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+
+.chat-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #bbb;
+    font-size: 16px;
+}
+
+.btn-circle {
+    border-radius: 50% !important;
+    width: 30px;
+    height: 30px;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    line-height: normal !important;
+}
+
+.message-bubble {
+    max-width: 70%;
+    padding: 12px 18px;
+    margin-bottom: 15px;
+    border-radius: 18px;
+    position: relative;
+    font-size: 14px;
+    line-height: 1.5;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.message-bubble.me {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    margin-left: auto;
+    border-bottom-right-radius: 4px;
+}
+
+.message-bubble.other {
+    background: #fff;
+    color: #333;
+    margin-right: auto;
+    border-bottom-left-radius: 4px;
+}
+
+.message-time {
+    font-size: 11px;
+    opacity: 0.8;
+    margin-top: 5px;
+    display: block;
+    text-align: right;
+}
+
+.chat-input-area {
+    padding: 20px;
+    background: #fff;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.chat-input {
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 12px 20px;
+    outline: none;
+    resize: none;
+    max-height: 100px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+.chat-input:focus {
+    border-color: #6366f1;
+}
+
+.chat-send-btn {
+    background: #6366f1;
+    color: white;
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+}
+
+.chat-send-btn:hover {
+    transform: scale(1.1);
+    background: #4f46e5;
+}

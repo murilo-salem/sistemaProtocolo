@@ -1,5 +1,13 @@
 <?php
-
+/**
+ * ConsolidarEntrega
+ *
+ * @version    1.0
+ * @package    control
+ * @subpackage entregas
+ * @author     Antigravity
+ * @copyright  Copyright (c) 2024
+ */
 class ConsolidarEntrega extends TPage
 {
     public static function onConsolidar($param)
@@ -13,79 +21,49 @@ class ConsolidarEntrega extends TPage
                 throw new Exception('Apenas entregas aprovadas podem ser consolidadas');
             }
             
-            $cliente = new Usuario($entrega->cliente_id);
-            $projeto = new Projeto($entrega->projeto_id);
             $documentos = $entrega->get_documentos();
             
-            // Criar PDF com TCPDF
-            require_once('lib/tcpdf/tcpdf.php');
-            
-            $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-            
-            // Configurações
-            $pdf->SetCreator('Sistema de Gestão de Documentos');
-            $pdf->SetAuthor($cliente->nome);
-            $pdf->SetTitle("Entrega {$projeto->nome} - " . $entrega->mes_referencia . "/" . $entrega->ano_referencia);
-            
-            // Remover header/footer padrão
-            $pdf->setPrintHeader(false);
-            $pdf->setPrintFooter(false);
-            
-            // Adicionar página de capa
-            $pdf->AddPage();
-            $pdf->SetFont('helvetica', 'B', 24);
-            $pdf->Cell(0, 50, '', 0, 1);
-            $pdf->Cell(0, 10, 'Entrega de Documentos', 0, 1, 'C');
-            
-            $pdf->SetFont('helvetica', '', 16);
-            $pdf->Cell(0, 10, '', 0, 1);
-            $pdf->Cell(0, 10, "Cliente: {$cliente->nome}", 0, 1, 'C');
-            $pdf->Cell(0, 10, "Projeto: {$projeto->nome}", 0, 1, 'C');
-            $pdf->Cell(0, 10, "Período: " . str_pad($entrega->mes_referencia, 2, '0', STR_PAD_LEFT) . "/" . $entrega->ano_referencia, 0, 1, 'C');
-            $pdf->Cell(0, 10, "Data de Aprovação: " . date('d/m/Y', strtotime($entrega->data_aprovacao)), 0, 1, 'C');
-            
-            // Adicionar cada documento
-            foreach ($documentos as $doc) {
-                if (file_exists($doc['arquivo'])) {
-                    $extensao = strtolower(pathinfo($doc['arquivo'], PATHINFO_EXTENSION));
-                    
-                    if ($extensao == 'pdf') {
-                        // Importar PDF
-                        $pageCount = $pdf->setSourceFile($doc['arquivo']);
-                        for ($i = 1; $i <= $pageCount; $i++) {
-                            $pdf->AddPage();
-                            $tplId = $pdf->importPage($i);
-                            $pdf->useTemplate($tplId);
-                        }
-                    } elseif (in_array($extensao, ['jpg', 'jpeg', 'png'])) {
-                        // Adicionar imagem
-                        $pdf->AddPage();
-                        $pdf->Image($doc['arquivo'], 15, 15, 180);
-                    }
-                }
+            if (empty($documentos)) {
+                throw new Exception('Nenhum documento encontrado para consolidar.');
             }
             
-            // Salvar PDF
             $pasta_consolidado = "files/consolidados/{$entrega->ano_referencia}/{$entrega->mes_referencia}";
             
             if (!is_dir($pasta_consolidado)) {
                 mkdir($pasta_consolidado, 0777, true);
             }
             
-            $nome_arquivo = "{$entrega->cliente_id}_{$entrega->projeto_id}_" . time() . ".pdf";
+            $nome_arquivo = "Consolidado_{$entrega->cliente_id}_{$entrega->projeto_id}_" . time() . ".zip";
             $caminho_completo = "{$pasta_consolidado}/{$nome_arquivo}";
             
-            $pdf->Output($caminho_completo, 'F');
+            if (!class_exists('ZipArchive')) {
+                throw new Exception('Extensão ZipArchive não encontrada no PHP.');
+            }
             
-            // Atualizar entrega
+            $zip = new ZipArchive;
+            if ($zip->open($caminho_completo, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE) {
+                throw new Exception('Não foi possível criar o arquivo ZIP.');
+            }
+            
+            foreach ($documentos as $doc_nome => $doc_arquivo) {
+                if (file_exists($doc_arquivo)) {
+                    $extensao = pathinfo($doc_arquivo, PATHINFO_EXTENSION);
+                    // Sanitizar nome do arquivo dentro do ZIP (remover caracteres especiais)
+                    $nome_limpo = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $doc_nome);
+                    $zip->addFile($doc_arquivo, "{$nome_limpo}.{$extensao}");
+                }
+            }
+            
+            $zip->close();
+            
+            // Update Entity
             $entrega->consolidado = 1;
             $entrega->arquivo_consolidado = $caminho_completo;
             $entrega->store();
             
             TTransaction::close();
             
-            new TMessage('info', 'PDF consolidado gerado com sucesso!');
-            TApplication::gotoPage('EntregaValidacao', 'onView', ['id' => $entrega->id]);
+            new TMessage('info', 'Arquivo ZIP gerado e salvo com sucesso!');
             
         } catch (Exception $e) {
             new TMessage('error', $e->getMessage());

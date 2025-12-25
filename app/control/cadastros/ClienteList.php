@@ -51,7 +51,7 @@ class ClienteList extends TPage
         $action_delete = new TDataGridAction([$this, 'onDelete'], ['id' => '{id}']);
         
         $this->datagrid->addAction($action_edit, 'Editar', 'fa:edit blue');
-        $this->datagrid->addAction($action_delete, 'Desativar', 'fa:ban red');
+        $this->datagrid->addAction($action_delete, 'Excluir', 'fa:times red');
         
         $this->datagrid->createModel();
         
@@ -125,14 +125,27 @@ class ClienteList extends TPage
         try {
             TTransaction::open('database');
             
-            $cliente = new Usuario($param['id']);
-            $cliente->ativo = 0;
-            $cliente->store();
+            $key = $param['id'];
+            $cliente = new Usuario($key);
+            
+            // Delete dependencies if needed (optional based on constraints)
+            // ClienteProjeto::where('cliente_id', '=', $key)->delete();
+            
+            // Delete dependencies from 'mensagem' table to avoid FK violation
+            TTransaction::get()->exec("DELETE FROM mensagem WHERE system_user_to_id = '{$key}'");
+            TTransaction::get()->exec("DELETE FROM mensagem WHERE system_user_from_id = '{$key}'");
+            
+            $cliente->delete();
+            
+            // Verification Step
+            if (Usuario::find($key)) {
+                throw new Exception("Falha Crítica: O cliente não foi removido do banco de dados (Verificação Pós-Exclusão falhou).");
+            }
             
             TTransaction::close();
             
             $this->onReload();
-            new TMessage('info', 'Cliente desativado com sucesso');
+            new TMessage('info', 'Cliente excluído com sucesso');
         } catch (Exception $e) {
             new TMessage('error', $e->getMessage());
             TTransaction::rollback();

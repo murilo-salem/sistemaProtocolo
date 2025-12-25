@@ -20,12 +20,14 @@ class ClienteForm extends TPage
         $senha = new TEntry('senha');
         $ativo = new TCheckButton('ativo');
         
-        $projetos = new TDBCheckGroup('projetos', 'database', 'Projeto', 'id', 'nome');
+        $projetos = new TDBCombo('projetos', 'database', 'Projeto', 'id', 'nome');
+        $projetos->enableSearch();
         
         $nome->setSize('100%');
         $email->setSize('100%');
         $login->setSize('100%');
         $senha->setSize('100%');
+        $projetos->setSize('100%'); // Dropdown size
         
         $login->setEditable(FALSE);
         $senha->setEditable(FALSE);
@@ -33,6 +35,7 @@ class ClienteForm extends TPage
         $nome->addValidation('Nome', new TRequiredValidator);
         $email->addValidation('Email', new TRequiredValidator);
         $email->addValidation('Email', new TEmailValidator);
+        $projetos->addValidation('Projeto', new TRequiredValidator); // Ensure a project is selected
         
         $this->form->addFields([$id]);
         $this->form->addFields([new TLabel('Nome*')], [$nome]);
@@ -40,7 +43,7 @@ class ClienteForm extends TPage
         $this->form->addFields([new TLabel('Login (gerado)' )], [$login]);
         $this->form->addFields([new TLabel('Senha (gerada)')], [$senha]);
         $this->form->addFields([new TLabel('Ativo')], [$ativo]);
-        $this->form->addFields([new TLabel('Projetos Vinculados')], [$projetos]);
+        $this->form->addFields([new TLabel('Projeto (Vinculado)*')], [$projetos]);
         
         $btn_save = $this->form->addAction('Salvar', new TAction([$this, 'onSave']), 'fa:save green');
         $btn_back = $this->form->addAction('Voltar', new TAction(['ClienteList', 'onReload']), 'fa:arrow-left blue');
@@ -62,14 +65,12 @@ class ClienteForm extends TPage
                 $usuario = new Usuario($param['id']);
                 $data = $usuario->toArray();
                 
-                // Carregar projetos vinculados
-                $vinculados = ClienteProjeto::where('cliente_id', '=', $usuario->id)->load();
-                $projetos_ids = [];
-                foreach ($vinculados as $vinculo) {
-                    $projetos_ids[] = $vinculo->projeto_id;
-                }
-                $data['projetos'] = $projetos_ids;
+                // Carregar projetos vinculados (Now expecting single)
+                $vinculado = ClienteProjeto::where('cliente_id', '=', $usuario->id)->first();
+                $data['projetos'] = $vinculado ? $vinculado->projeto_id : null;
                 
+                // Do not show the hashed password
+                unset($data['senha']);
                 $this->form->setData((object) $data);
                 
                 TTransaction::close();
@@ -116,14 +117,12 @@ class ClienteForm extends TPage
             // Remover vínculos antigos
             ClienteProjeto::where('cliente_id', '=', $usuario->id)->delete();
             
-            // Adicionar novos vínculos
-            if (isset($param['projetos']) && is_array($param['projetos'])) {
-                foreach ($param['projetos'] as $projeto_id) {
-                    $vinculo = new ClienteProjeto;
-                    $vinculo->cliente_id = $usuario->id;
-                    $vinculo->projeto_id = $projeto_id;
-                    $vinculo->store();
-                }
+            // Adicionar novo vínculo (Single)
+            if (!empty($param['projetos'])) {
+                $vinculo = new ClienteProjeto;
+                $vinculo->cliente_id = $usuario->id;
+                $vinculo->projeto_id = $param['projetos'];
+                $vinculo->store();
             }
             
             TTransaction::close();
@@ -134,11 +133,24 @@ class ClienteForm extends TPage
                 $msg .= "Senha: {$senha_gerada}\n\n";
                 $msg .= "Anote estas informações!";
                 new TMessage('info', $msg);
+                
+                // Show the plain password in the form
+                $data = new stdClass;
+                $data->id = $usuario->id;
+                $data->nome = $usuario->nome;
+                $data->email = $usuario->email;
+                $data->login = $usuario->login;
+                $data->senha = $senha_gerada; // Plain password for display
+                $data->ativo = $usuario->ativo;
+                $data->projetos = $param['projetos'] ?? null;
+                
+                $this->form->setData($data);
+                
+                // Do not redirect, so user can see it
             } else {
                 new TMessage('info', 'Cliente atualizado com sucesso');
+                TApplication::gotoPage('ClienteList');
             }
-            
-            TApplication::gotoPage('ClienteList');
             
         } catch (Exception $e) {
             new TMessage('error', $e->getMessage());

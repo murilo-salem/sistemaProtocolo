@@ -51,16 +51,12 @@ class EntregaValidacao extends TPage
                 $html_docs .= "<div class='panel-heading'>Documentos Entregues</div>";
                 $html_docs .= "<div class='panel-body'>";
                 
-                foreach ($documentos as $doc) {
+                // $documentos is ['doc_name' => 'file_path']
+                foreach ($documentos as $doc_nome => $doc_arquivo) {
                     $html_docs .= "<div class='well'>";
-                    $html_docs .= "<h4>{$doc['nome']}</h4>";
-                    $html_docs .= "<p><a href='{$doc['arquivo']}' target='_blank' class='btn btn-sm btn-primary'>";
+                    $html_docs .= "<h4>{$doc_nome}</h4>";
+                    $html_docs .= "<p><a href='{$doc_arquivo}' target='_blank' class='btn btn-sm btn-primary'>";
                     $html_docs .= "<i class='fa fa-download'></i> Baixar/Visualizar</a></p>";
-                    
-                    if (!empty($doc['observacao'])) {
-                        $html_docs .= "<p><strong>Observação do Cliente:</strong><br>{$doc['observacao']}</p>";
-                    }
-                    
                     $html_docs .= "</div>";
                 }
                 
@@ -77,13 +73,13 @@ class EntregaValidacao extends TPage
             $this->form->addFields([new TLabel('Observações do Gestor')], [$observacoes]);
             
             // Botões de ação
-            if ($entrega->status == 'em_analise' || $entrega->status == 'rejeitado') {
+            if ($entrega->status == 'pendente' || $entrega->status == 'em_analise') {
                 $btn_aprovar = $this->form->addAction('Aprovar', new TAction([$this, 'onAprovar']), 'fa:check green');
                 $btn_rejeitar = $this->form->addAction('Rejeitar', new TAction([$this, 'onRejeitar']), 'fa:times red');
             }
             
             if ($entrega->status == 'aprovado' && !$entrega->consolidado) {
-                $btn_consolidar = $this->form->addAction('Consolidar PDF', new TAction(['ConsolidarEntrega', 'onConsolidar'], ['id' => $entrega->id]), 'fa:file-pdf-o orange');
+                $btn_consolidar = $this->form->addAction('Gerar Consolidação', new TAction([$this, 'onConsolidarPDF']), 'fa:file-pdf-o orange');
             }
             
             if ($entrega->consolidado && $entrega->arquivo_consolidado) {
@@ -152,7 +148,9 @@ class EntregaValidacao extends TPage
             $entrega = new Entrega($param['entrega_id']);
             
             if ($entrega->arquivo_consolidado && file_exists($entrega->arquivo_consolidado)) {
-                header('Content-Type: application/pdf');
+                $extension = strtolower(pathinfo($entrega->arquivo_consolidado, PATHINFO_EXTENSION));
+                $content_type = ($extension == 'pdf') ? 'application/pdf' : 'application/zip';
+                header('Content-Type: ' . $content_type);
                 header('Content-Disposition: attachment; filename="' . basename($entrega->arquivo_consolidado) . '"');
                 readfile($entrega->arquivo_consolidado);
             } else {
@@ -160,6 +158,28 @@ class EntregaValidacao extends TPage
             }
             
             TTransaction::close();
+            
+        } catch (Exception $e) {
+            new TMessage('error', $e->getMessage());
+            TTransaction::rollback();
+        }
+    }
+    
+    public function onConsolidarPDF($param)
+    {
+        try {
+            TTransaction::open('database');
+            
+            $entrega = new Entrega($param['entrega_id']);
+            
+            // Save observations before consolidating
+            $entrega->observacoes = $param['observacoes'] ?? '';
+            $entrega->store();
+            
+            TTransaction::close();
+            
+            // Call the consolidation logic
+            ConsolidarEntrega::onConsolidar(['id' => $entrega->id]);
             
         } catch (Exception $e) {
             new TMessage('error', $e->getMessage());

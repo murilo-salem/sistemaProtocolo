@@ -6,7 +6,7 @@ $theme  = $ini['general']['theme'];
 new TSession;
 
 if (!isset($_REQUEST['class'])) {
-    $_REQUEST['class'] = 'LoginForm'; // página padrão
+    $_REQUEST['class'] = 'LoginForm'; // PÁGINA PADRÃO11
 }
 
 $method = $_REQUEST['method'] ?? null;
@@ -18,10 +18,38 @@ if (isset($_REQUEST['template']) AND $_REQUEST['template'] == 'iframe')
 }   
 else
 {
-	$content  = file_get_contents("app/templates/{$theme}/layout.html");
+	$class = $_REQUEST['class'];
+
+    if ($class === 'WelcomePage') {
+    $content = file_get_contents("app/templates/{$theme}/welcome.html");
+    $menu_string = '';
+    }
+    else if ($class === 'LoginForm') {
+        $content = file_get_contents("app/templates/{$theme}/login.html");
+        $menu_string = '';
+    }
+    else {
+        $content = file_get_contents("app/templates/{$theme}/layout.html");
+        // $menu_string = AdiantiMenuBuilder::parse('menu.xml', $theme);
+        $user_type = TSession::getValue('usertype');
+        if ($user_type == 'gestor') {
+            $menu_file = 'menu-gestor.xml';
+        } else {
+            $menu_file = 'menu-cliente.xml';
+        }
+
+        if ($class == 'LoginForm') {
+            $menu_string = '';
+        } else {
+            $menu_string = AdiantiMenuBuilder::parse($menu_file, $theme);
+        }
+    }
+
+    // $content = str_replace('{content}', AdiantiCoreApplication::getContent(), $content);
+
 }
 
-$menu_string = AdiantiMenuBuilder::parse('menu.xml', $theme);
+// $menu_string = AdiantiMenuBuilder::parse('menu.xml', $theme);
 $content     = ApplicationTranslator::translateTemplate($content);
 $content     = str_replace('{LIBRARIES}', file_get_contents("app/templates/{$theme}/libraries.html"), $content);
 $content     = str_replace('{class}', isset($_REQUEST['class']) ? $_REQUEST['class'] : '', $content);

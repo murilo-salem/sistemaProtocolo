@@ -82,6 +82,7 @@ class BootstrapFormBuilder implements AdiantiFormInterface
         $this->client_validation = false;
         $this->csrf_validation   = false;
         $this->hidden            = false;
+        $this->tabcontent        = array();
         
         $this->column_classes = array();
         $this->column_classes[1]  = ['col-sm-12'];

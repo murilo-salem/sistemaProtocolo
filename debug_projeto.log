@@ -1,0 +1,206 @@
+Projeto ID: 2
+nome_doc isset: YES
+nome_doc data: Identidade
+=== Save at 16:07:11 ===
+Full param: Array
+(
+    [class] => ProjetoForm
+    [method] => onSave
+    [id] => 
+    [nome] => Relatórios AB
+    [descricao] => 1
+    [dia_vencimento] => 1
+    [ativo] => on
+    [nome_doc] => RG
+)
+
+=== Save at 16:07:21 ===
+Full param: Array
+(
+    [class] => ProjetoForm
+    [method] => onSave
+    [id] => 2
+    [nome] => Relatórios AB
+    [descricao] => 1
+    [dia_vencimento] => 1
+    [nome_doc] => Identidade
+)
+
+=== Save at 16:11:27 ===
+Full param: Array
+(
+    [class] => ProjetoForm
+    [method] => onSave
+    [id] => 
+    [nome] => Projeto X.
+    [descricao] => Este projeto contém documentos necessário referentes a Y.
+    [dia_vencimento] => 7
+    [nome_doc] => Array
+        (
+            [0] => Identidade
+            [1] => RG
+        )
+
+)
+
+=== Save at 16:13:51 ===
+Full param: Array
+(
+    [class] => ProjetoForm
+    [method] => onSave
+    [id] => 
+    [nome] => Relatórios Y
+    [descricao] => Este projeto.
+    [dia_vencimento] => 1
+    [ativo] => on
+    [nome_doc] => Array
+        (
+            [0] => RG
+            [1] => Identidade
+        )
+
+)
+
+=== Save at 16:13:59 ===
+Full param: Array
+(
+    [class] => ProjetoForm
+    [method] => onSave
+    [id] => 1
+    [nome] => Relatórios Y
+    [descricao] => Este projeto.
+    [dia_vencimento] => 3
+    [nome_doc] => Array
+        (
+            [0] => RG
+            [1] => Identidade
+        )
+
+)
+
+=== Save at 16:14:04 ===
+Full param: Array
+(
+    [class] => ProjetoForm
+    [method] => onSave
+    [id] => 1
+    [nome] => Relatórios Y
+    [descricao] => Este projeto.
+    [dia_vencimento] => 3
+    [ativo] => on
+    [nome_doc] => Array
+        (
+            [0] => RG
+            [1] => Identidade
+        )
+
+)
+
+=== Save at 16:14:08 ===
+Full param: Array
+(
+    [class] => ProjetoForm
+    [method] => onSave
+    [id] => 1
+    [nome] => Relatórios Y
+    [descricao] => Este projeto.
+    [dia_vencimento] => 3
+    [ativo] => on
+    [nome_doc] => Array
+        (
+            [0] => RG
+            [1] => Identidade
+        )
+
+)
+
+=== Save at 16:15:30 ===
+Full param: Array
+(
+    [class] => ProjetoForm
+    [method] => onSave
+    [id] => 1
+    [nome] => Relatórios Y
+    [descricao] => Este projeto.
+    [dia_vencimento] => 3
+    [ativo] => on
+    [nome_doc] => Array
+        (
+            [0] => RG
+            [1] => Identidade
+        )
+
+)
+
+=== Save at 16:17:31 ===
+Full param: Array
+(
+    [class] => ProjetoForm
+    [method] => onSave
+    [id] => 
+    [nome] => Relatórios A.
+    [descricao] => Este projeto segue a LGPD.
+    [dia_vencimento] => 7
+    [ativo] => on
+    [nome_doc] => Array
+        (
+            [0] => Identidade
+            [1] => RG
+        )
+
+)
+
+=== Save at 16:24:07 ===
+Full param: Array
+(
+    [class] => ProjetoForm
+    [method] => onSave
+    [id] => 
+    [nome] => Relatórios A
+    [descricao] => Breve descrição.
+    [dia_vencimento] => 7
+    [ativo] => on
+    [nome_doc] => Array
+        (
+            [0] => RG.
+            [1] => Identidade.
+        )
+
+)
+
+=== Save at 16:24:12 ===
+Full param: Array
+(
+    [class] => ProjetoForm
+    [method] => onSave
+    [id] => 1
+    [nome] => Relatórios A
+    [descricao] => Breve descrição.
+    [dia_vencimento] => 7
+    [ativo] => on
+    [nome_doc] => Array
+        (
+            [0] => RG.
+            [1] => Identidade.
+        )
+
+)
+
+=== Save at 18:09:05 ===
+Full param: Array
+(
+    [class] => ProjetoForm
+    [method] => onSave
+    [id] => 
+    [nome] => Projeto A.
+    [descricao] => Qualquer texto.
+    [dia_vencimento] => 5
+    [ativo] => on
+    [nome_doc] => Array
+        (
+            [0] => Arquivo 1.
+            [1] => Arquivo 2.
+        )
+
+)
+

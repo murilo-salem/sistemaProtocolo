@@ -43,9 +43,9 @@ class LoginForm extends TPage
 
                 // redireciona para dashboard correto
                 if ($usuario->tipo == 'gestor') {
-                    AdiantiCoreApplication::loadPage('DashboardGestor');
+                    TScript::create("window.location = 'index.php?class=DashboardGestor'");
                 } else {
-                    AdiantiCoreApplication::loadPage('DashboardCliente');
+                    TScript::create("window.location = 'index.php?class=DashboardCliente'");
                 }
             } else {
                 throw new Exception('Login ou senha inválidos');
