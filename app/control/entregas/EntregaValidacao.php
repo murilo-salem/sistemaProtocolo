@@ -47,38 +47,81 @@ class EntregaValidacao extends TPage
             $documentos = $entrega->get_documentos();
             
             if ($documentos) {
-                $html_docs = "<div class='panel panel-primary'>";
-                $html_docs .= "<div class='panel-heading'>Documentos Entregues</div>";
-                $html_docs .= "<div class='panel-body'>";
+                $this->form->addContent([new TElement('h4', 'Validação de Itens')]);
                 
                 // $documentos is ['doc_name' => 'file_path']
+                // Need to use index to create unique field names
+                $i = 0;
                 foreach ($documentos as $doc_nome => $doc_arquivo) {
-                    $html_docs .= "<div class='well'>";
-                    $html_docs .= "<h4>{$doc_nome}</h4>";
-                    $html_docs .= "<p><a href='{$doc_arquivo}' target='_blank' class='btn btn-sm btn-primary'>";
-                    $html_docs .= "<i class='fa fa-download'></i> Baixar/Visualizar</a></p>";
-                    $html_docs .= "</div>";
+                    $i++;
+                    
+                    $frame = new TElement('div');
+                    $frame->style = 'margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; border-radius: 4px;';
+                    
+                    $link = "<a href='{$doc_arquivo}' target='_blank' class='btn btn-default btn-xs'><i class='fa fa-download'></i> Ver Arquivo</a>";
+                    $label = new TLabel("<b>{$doc_nome}</b> $link");
+                    
+                    $status_field = new TCombo("status_doc_{$i}");
+                    $status_field->addItems(['aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado']);
+                    $status_field->setValue('aprovado');
+                    $status_field->setSize('100%');
+                    $status_field->setChangeAction(new TAction([$this, 'onChangeStatus'], ['index' => $i]));
+                    
+                    $motivo_field = new TEntry("motivo_doc_{$i}");
+                    $motivo_field->setProperty('placeholder', 'Motivo da rejeição (obrigatório se rejeitado)');
+                    $motivo_field->setSize('100%');
+                    // $motivo_field->style = 'display:none'; // Hard to toggle via pure PHP without reload, keeping visible but optional
+                    
+                    // Hidden field to store doc name for reference
+                    $name_field = new THidden("nome_doc_{$i}");
+                    $name_field->setValue($doc_nome);
+                    
+                    $row = new TElement('div');
+                    $row->class = 'row';
+                    
+                    $col1 = new TElement('div'); $col1->class = 'col-sm-6';
+                    $col1->add($label);
+                    
+                    $col2 = new TElement('div'); $col2->class = 'col-sm-2';
+                    $col2->add($status_field);
+                    
+                    $col3 = new TElement('div'); $col3->class = 'col-sm-4';
+                    $col3->add($motivo_field);
+                    
+                    $row->add($col1);
+                    $row->add($col2);
+                    $row->add($col3);
+                    
+                    $frame->add($row);
+                    
+                    $this->form->addFields([$name_field]); // register hidden
+                    $this->form->addContent([$frame]);
+                    
+                    // Register fields manually in form to ensure they are posted
+                    $this->form->addField($status_field);
+                    $this->form->addField($motivo_field);
                 }
                 
-                $html_docs .= "</div></div>";
-                
-                $this->form->addContent([new TElement('div', $html_docs)]);
+                // Hidden field store count
+                $count_field = new THidden('doc_count');
+                $count_field->setValue($i);
+                $this->form->addFields([$count_field]);
             }
             
-            // Campo de observações do gestor
+            // Campo de observações gerais
             $observacoes = new TText('observacoes');
             $observacoes->setSize('100%', 100);
             $observacoes->setValue($entrega->observacoes);
             
-            $this->form->addFields([new TLabel('Observações do Gestor')], [$observacoes]);
+            $this->form->addFields([new TLabel('Observações Gerais')], [$observacoes]);
             
             // Botões de ação
-            if ($entrega->status == 'pendente' || $entrega->status == 'em_analise') {
-                $btn_aprovar = $this->form->addAction('Aprovar', new TAction([$this, 'onAprovar']), 'fa:check green');
-                $btn_rejeitar = $this->form->addAction('Rejeitar', new TAction([$this, 'onRejeitar']), 'fa:times red');
+            if ($entrega->status != 'aprovado') { // Allow re-validation if needed or if pending
+                $btn_confirmar = $this->form->addAction('Confirmar Validação', new TAction([$this, 'onConfirmar']), 'fa:check-circle green');
             }
             
             if ($entrega->status == 'aprovado' && !$entrega->consolidado) {
+                 // If already approved, show consolidate button
                 $btn_consolidar = $this->form->addAction('Gerar Consolidação', new TAction([$this, 'onConsolidarPDF']), 'fa:file-pdf-o orange');
             }
             
@@ -96,21 +139,66 @@ class EntregaValidacao extends TPage
         }
     }
     
-    public function onAprovar($param)
+    public static function onChangeStatus($param)
+    {
+        // Placeholder for dynamic show/hide interaction if needed using TScript
+        // Currently keeping simple
+    }
+
+    public function onConfirmar($param)
     {
         try {
             TTransaction::open('database');
             
             $entrega = new Entrega($param['entrega_id']);
-            $entrega->status = 'aprovado';
-            $entrega->data_aprovacao = date('Y-m-d H:i:s');
-            $entrega->aprovado_por = TSession::getValue('userid');
-            $entrega->observacoes = $param['observacoes'] ?? '';
-            $entrega->store();
+            $count = (int) ($param['doc_count'] ?? 0);
+            
+            $all_approved = true;
+            $rejection_reasons = [];
+            
+            for ($i = 1; $i <= $count; $i++) {
+                $status = $param["status_doc_{$i}"] ?? 'aprovado';
+                $motivo = $param["motivo_doc_{$i}"] ?? '';
+                $doc_nome = $param["nome_doc_{$i}"] ?? "Documento $i";
+                
+                if ($status == 'rejeitado') {
+                    $all_approved = false;
+                    if (empty($motivo)) {
+                        throw new Exception("O motivo é obrigatório para o documento '{$doc_nome}' ser rejeitado.");
+                    }
+                    $rejection_reasons[] = "- {$doc_nome}: {$motivo}";
+                }
+            }
+            
+            if ($all_approved) {
+                $entrega->status = 'aprovado';
+                $entrega->data_aprovacao = date('Y-m-d H:i:s');
+                $entrega->aprovado_por = TSession::getValue('userid');
+                $entrega->observacoes = $param['observacoes'] ?? '';
+                $entrega->store();
+                
+                // Notify Client of Approval
+                try {
+                    $subject = "Entrega Aprovada: " . $entrega->mes_referencia . "/" . $entrega->ano_referencia;
+                    $msg_body = "Sua entrega de documentos referente a " . str_pad($entrega->mes_referencia, 2, '0', STR_PAD_LEFT) . "/" . $entrega->ano_referencia . " foi analisada e aprovada.";
+                    NotificationService::send(TSession::getValue('userid'), $entrega->cliente_id, $subject, $msg_body);
+                } catch (Exception $e) {}
+                
+                new TMessage('info', 'Todos os documentos foram validados. Entrega APROVADA!');
+            } else {
+                $entrega->status = 'rejeitado';
+                $entrega->observacoes = $param['observacoes'] ?? '';
+                $entrega->store();
+                
+                // Send Notification (Rejection)
+                $this->notifyClient($entrega, $rejection_reasons);
+                
+                new TMessage('warning', 'Alguns documentos foram rejeitados. O cliente foi notificado.');
+            }
             
             TTransaction::close();
             
-            new TMessage('info', 'Entrega aprovada com sucesso!');
+            // Reload page to show new status
             $this->onView(['id' => $entrega->id]);
             
         } catch (Exception $e) {
@@ -119,25 +207,17 @@ class EntregaValidacao extends TPage
         }
     }
     
-    public function onRejeitar($param)
+    public function notifyClient($entrega, $reasons)
     {
-        try {
-            TTransaction::open('database');
-            
-            $entrega = new Entrega($param['entrega_id']);
-            $entrega->status = 'rejeitado';
-            $entrega->observacoes = $param['observacoes'] ?? '';
-            $entrega->store();
-            
-            TTransaction::close();
-            
-            new TMessage('info', 'Entrega rejeitada.');
-            TApplication::gotoPage('EntregaList');
-            
-        } catch (Exception $e) {
-            new TMessage('error', $e->getMessage());
-            TTransaction::rollback();
-        }
+        // Use NotificationService
+        $msg_body = "Sua entrega referente a " . str_pad($entrega->mes_referencia, 2, '0', STR_PAD_LEFT) . "/" . $entrega->ano_referencia . " foi analisada e REJEITADA.\n\n";
+        $msg_body .= "Motivos:\n";
+        $msg_body .= implode("\n", $reasons);
+        $msg_body .= "\n\nPor favor, corrija os arquivos e envie novamente.";
+        
+        $subject = "Correção Solicitada: Entrega " . $entrega->mes_referencia . "/" . $entrega->ano_referencia;
+        
+        NotificationService::send(TSession::getValue('userid'), $entrega->cliente_id, $subject, $msg_body);
     }
     
     public function onDownload($param)
@@ -167,23 +247,7 @@ class EntregaValidacao extends TPage
     
     public function onConsolidarPDF($param)
     {
-        try {
-            TTransaction::open('database');
-            
-            $entrega = new Entrega($param['entrega_id']);
-            
-            // Save observations before consolidating
-            $entrega->observacoes = $param['observacoes'] ?? '';
-            $entrega->store();
-            
-            TTransaction::close();
-            
-            // Call the consolidation logic
-            ConsolidarEntrega::onConsolidar(['id' => $entrega->id]);
-            
-        } catch (Exception $e) {
-            new TMessage('error', $e->getMessage());
-            TTransaction::rollback();
-        }
+        // Forward logic to ConsolidarEntrega
+        ConsolidarEntrega::onConsolidar(['id' => $param['entrega_id']]);
     }
 }

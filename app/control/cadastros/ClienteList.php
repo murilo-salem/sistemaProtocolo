@@ -129,11 +129,14 @@ class ClienteList extends TPage
             $cliente = new Usuario($key);
             
             // Delete dependencies if needed (optional based on constraints)
-            // ClienteProjeto::where('cliente_id', '=', $key)->delete();
+            ClienteProjeto::where('cliente_id', '=', $key)->delete();
             
             // Delete dependencies from 'mensagem' table to avoid FK violation
             TTransaction::get()->exec("DELETE FROM mensagem WHERE system_user_to_id = '{$key}'");
-            TTransaction::get()->exec("DELETE FROM mensagem WHERE system_user_from_id = '{$key}'");
+            TTransaction::get()->exec("DELETE FROM mensagem WHERE system_user_id = '{$key}'");
+            
+            // Delete any entregas related to this client
+            Entrega::where('cliente_id', '=', $key)->delete();
             
             $cliente->delete();
             

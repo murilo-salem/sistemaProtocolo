@@ -61,6 +61,14 @@ class ConsolidarEntrega extends TPage
             $entrega->arquivo_consolidado = $caminho_completo;
             $entrega->store();
             
+            // Notify User
+            try {
+                $subject = "Consolidação Disponível: " . $entrega->mes_referencia . "/" . $entrega->ano_referencia;
+                $msg_body = "O relatório consolidado da sua entrega referente a " . str_pad($entrega->mes_referencia, 2, '0', STR_PAD_LEFT) . "/" . $entrega->ano_referencia . " já está disponível para download.";
+                
+                NotificationService::send(TSession::getValue('userid'), $entrega->cliente_id, $subject, $msg_body);
+            } catch (Exception $e) {}
+            
             TTransaction::close();
             
             new TMessage('info', 'Arquivo ZIP gerado e salvo com sucesso!');

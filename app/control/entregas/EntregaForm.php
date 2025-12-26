@@ -10,57 +10,99 @@ class EntregaForm extends TPage
 
         $this->form = new BootstrapFormBuilder('form_entrega');
         $this->form->setFormTitle('Envio de Documentos');
-
+        
+        // Define fields manually so TForm knows about them (even if rendered via HTML)
+        $cliente_id_field = new THidden('cliente_id');
+        $projeto_id_field = new THidden('projeto_id');
+        
+        // Month/Year as Hidden fields (auto-assigned to current)
+        $mes = new THidden('mes_referencia');
+        $ano = new THidden('ano_referencia');
+        
+        // Default values
         $cliente_id = TSession::getValue('userid');
         $projeto_id = $param['projeto_id'] ?? null;
+        
+        // If no project selected, try to find one for this client
+        if (empty($projeto_id)) {
+             try {
+                 TTransaction::open('database');
+                 $rel = ClienteProjeto::where('cliente_id', '=', $cliente_id)->first();
+                 if ($rel) {
+                     $projeto_id = $rel->projeto_id;
+                 }
+                 TTransaction::close();
+             } catch (Exception $e) {
+                 // ignore
+             }
+        }
+        
+        // Validation: If still no project, we can't show requirements
+        if (empty($projeto_id)) {
+            new TMessage('error', 'Nenhum projeto encontrado para este usuário. Impossível enviar documentos.');
+        }
 
-        $cliente_field = new THidden('cliente_id');
-        $cliente_field->setValue($cliente_id);
-        $projeto_field = new THidden('projeto_id');
-        $projeto_field->setValue($projeto_id);
+        $cliente_id_field->setValue($cliente_id);
+        $projeto_id_field->setValue($projeto_id);
+        
+        $mes->setValue(date('n')); 
+        $ano->setValue(date('Y'));
 
-        $this->form->addFields([$cliente_field, $projeto_field]);
-
-        // Load documents from the normalized table
-        $docs = [];
+        // Register fields in the form
+        $this->form->addFields([$cliente_id_field, $projeto_id_field, $mes, $ano]);
+        
+        // -- HTML Rendering --
+        $html = new THtmlRenderer('app/resources/entrega_form.html');
+        
+        // 1. Static Replacements
+        $replacements = [];
+        // No replacements needed for hidden fields in the UI anymore
+        
+        // 2. Requirements Section
+        $requirements_data = [];
+        
         if ($projeto_id) {
             TTransaction::open('database');
-            $projeto = new Projeto($projeto_id);
+            // Fetch Requirements
             $doc_items = ProjetoDocumento::where('projeto_id', '=', $projeto_id)->load();
             if ($doc_items) {
-                foreach ($doc_items as $doc_item) {
-                    $docs[] = $doc_item->nome_documento;
+                foreach ($doc_items as $item) {
+                    $requirements_data[] = [
+                        'doc_id' => $item->id,
+                        'doc_name' => $item->nome_documento
+                    ];
                 }
             }
             TTransaction::close();
         }
-
-        if ($docs) {
-            foreach ($docs as $doc) {
-                $file = new TFile('arquivo_' . md5($doc));
-                $file->setAllowedExtensions(['pdf', 'jpg', 'png']);
-                $file->setSize('100%');
-                $this->form->addFields([new TLabel($doc)], [$file]);
-            }
-        }
-
-        $mes = new TCombo('mes_referencia');
-        $mes->addItems([
-            1=>'Janeiro',2=>'Fevereiro',3=>'Março',4=>'Abril',5=>'Maio',6=>'Junho',
-            7=>'Julho',8=>'Agosto',9=>'Setembro',10=>'Outubro',11=>'Novembro',12=>'Dezembro'
-        ]);
-
-        $ano = new TEntry('ano_referencia');
-        $ano->setValue(date('Y'));
-
-        $this->form->addFields([new TLabel('Mês')], [$mes]);
-        $this->form->addFields([new TLabel('Ano')], [$ano]);
-
-        $this->form->addAction('Enviar', new TAction([$this, 'onSave']), 'fa:upload green');
-
+        
+        $html->enableSection('requirements', $requirements_data, true);
+        $html->enableSection('main', $replacements);
+        
+        // Add container
         $container = new TVBox;
         $container->style = 'width: 100%';
         $container->add(new TXMLBreadCrumb('menu-cliente.xml', __CLASS__));
+        
+        // Wrap HTML in a container that the form action will include
+        $content = new TElement('div');
+        $content->add($html);
+        
+        $this->form->add($content);
+        
+        // DEBUG: Temporary info
+        $debug = new TElement('div');
+        $debug->style = 'background: #ffe; padding: 10px; border: 1px solid #ddd; margin-top: 20px;';
+        $debug->add("<b>DEBUG INFO:</b><br>");
+        $debug->add("Cliente ID Sessão: " . $cliente_id . "<br>");
+        $debug->add("Projeto ID Resolvido: " . var_export($projeto_id, true) . "<br>");
+        $debug->add("Documentos Encontrados: " . count($doc_items) . "<br>");
+        $debug->add("Project Documents Query: ProjektDocumento::where('projeto_id', '=', $projeto_id)<br>");
+        $this->form->add($debug);
+        
+        // Add Actions (injected into _ACTIONS_)
+        $this->form->addAction('Enviar Entrega', new TAction([$this, 'onSave']), 'fa:check green');
+        
         $container->add($this->form);
         parent::add($container);
     }
@@ -69,44 +111,65 @@ class EntregaForm extends TPage
     {
         try {
             TTransaction::open('database');
-
+            
             $cliente_id = $param['cliente_id'];
             $projeto_id = $param['projeto_id'];
             $mes = $param['mes_referencia'];
             $ano = $param['ano_referencia'];
-
-            // Load documents from normalized table
+            
+            // Get expected documents
             $doc_items = ProjetoDocumento::where('projeto_id', '=', $projeto_id)->load();
-            $docs = [];
-            if ($doc_items) {
-                foreach ($doc_items as $doc_item) {
-                    $docs[] = $doc_item->nome_documento;
+            
+            $documentos_salvos = [];
+            $missing = [];
+            
+            foreach ($doc_items as $item) {
+                $field_name = 'doc_' . $item->id;
+                
+                if (!empty($param[$field_name])) {
+                    $verifyPath = $param[$field_name];
+                    
+                    // Sanitize path to avoid traversal
+                    $verifyPath = str_replace(['../', '..\\'], '', $verifyPath);
+                    
+                    // AdiantiUploaderService returns just the filename, but file is in tmp/
+                    // If the path doesn't start with tmp/, prepend it.
+                    if (strpos($verifyPath, 'tmp/') !== 0) {
+                        $verifyPath = 'tmp/' . $verifyPath;
+                    }
+
+                    $pathParts = explode('/', $verifyPath);
+                    $fileName = end($pathParts);
+                    
+                    if (file_exists($verifyPath)) {
+                        // Move to permanent location
+                        // Structure: app/uploads/projetos/{projeto_id}/{cliente_id}/{submission_date}/filename
+                        $subDir = date('Y-m-d_H-i-s');
+                        $targetDir = "app/uploads/projetos/{$projeto_id}/{$cliente_id}/{$subDir}";
+                        $targetFile = $targetDir . '/' . $fileName;
+                        
+                        if (!file_exists($targetDir)) {
+                            mkdir($targetDir, 0777, true);
+                        }
+                        
+                        if (rename($verifyPath, $targetFile)) {
+                             $documentos_salvos[$item->nome_documento] = $targetFile;
+                        } else {
+                             throw new Exception("Falha ao mover arquivo: {$fileName}");
+                        }
+                    } else {
+                        // Debug log if file not found
+                        // file_put_contents('log_entrega_error.txt', "File not found: $verifyPath\n", FILE_APPEND);
+                    }
+                } else {
+                    if (isset($item->obrigatorio) && ($item->obrigatorio == '1' || $item->obrigatorio === 1)) {
+                         $missing[] = $item->nome_documento;
+                    }
                 }
             }
-
-            $documentos_salvos = [];
-
-            foreach ($docs as $doc) {
-                $field = 'arquivo_' . md5($doc);
-                if (!empty($param[$field])) {
-                    // TFile uploads to 'tmp/' folder
-                    $source = 'tmp/' . $param[$field];
-                    
-                    // If file doesn't exist in tmp/, try without tmp/
-                    if (!file_exists($source)) {
-                        $source = $param[$field];
-                    }
-                    
-                    if (file_exists($source)) {
-                        $destino = "app/uploads/projetos/{$projeto_id}/{$cliente_id}/{$param[$field]}";
-                        if (!file_exists(dirname($destino))) {
-                            mkdir(dirname($destino), 0777, true);
-                        }
-                        copy($source, $destino);
-                        @unlink($source); // Remove temp file
-                        $documentos_salvos[$doc] = $destino;
-                    }
-                }
+            
+            if (empty($documentos_salvos)) {
+                throw new Exception("Nenhum documento foi anexado.");
             }
 
             $entrega = new Entrega;
@@ -119,15 +182,35 @@ class EntregaForm extends TPage
             $entrega->data_entrega = date('Y-m-d H:i:s');
             $entrega->store();
 
+            // Notify Managers
+            try {
+                // Assuming Autoload can find NotificationService or we include it. 
+                // Since it is in app/service, it should be autoloaded if registered in init.
+                // If not, we might need require_once.
+                // For now assuming Adianti standard autoload works or I need to register it.
+                // Let's assume Standard Autoload.
+                
+                $cliente_nome = TSession::getValue('username');
+                $subject = "Nova Entrega: $cliente_nome";
+                $msg_body = "O cliente $cliente_nome enviou documentos referentes a " . str_pad($mes, 2, '0', STR_PAD_LEFT) . "/$ano.";
+                
+                NotificationService::notifyGestores(TSession::getValue('userid'), $subject, $msg_body);
+            } catch (Exception $e) {
+                // Ignore notification errors
+            }
+
             TTransaction::close();
 
-            new TMessage('info', 'Documentos enviados com sucesso!');
+            new TMessage('info', 'Documentos enviados com sucesso!', new TAction(['EntregaList', 'onReload']));
+            
         } catch (Exception $e) {
             TTransaction::rollback();
             new TMessage('error', $e->getMessage());
         }
     }
+    
     public function onEdit($param)
     {
+        // Edit mode logic if needed
     }
 }

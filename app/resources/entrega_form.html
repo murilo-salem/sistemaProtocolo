@@ -1,0 +1,378 @@
+<!--[main]-->
+<style>
+    .staging-area {
+        border: 2px dashed #ccc;
+        border-radius: 10px;
+        padding: 40px;
+        text-align: center;
+        background: #f9f9f9;
+        min-height: 200px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .staging-area.dragover {
+        border-color: #2196F3;
+        background: #e3f2fd;
+    }
+
+    .staging-area p {
+        color: #777;
+        font-size: 16px;
+        pointer-events: none;
+    }
+
+    .file-card {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 10px;
+        margin: 5px;
+        display: inline-flex;
+        align-items: center;
+        width: 100%;
+        max-width: 155px;
+        /* compact */
+        cursor: grab;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        user-select: none;
+        overflow: hidden;
+    }
+
+    .file-card i {
+        font-size: 24px;
+        margin-right: 10px;
+        color: #555;
+    }
+
+    .file-card span {
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        max-width: 100px;
+    }
+
+    .requirement-slot {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 30px;
+        min-height: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+
+    .requirement-slot.highlight {
+        border-color: #28a745;
+        background-color: #e8f5e9;
+    }
+
+    .requirement-slot h5 {
+        margin: 0 0 5px 0;
+        font-size: 14px;
+        color: #333;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .doc-placeholder {
+        color: #999;
+        font-size: 12px;
+        font-style: italic;
+        text-align: center;
+        border: 1px dashed #ccc;
+        border-radius: 4px;
+        padding: 10px;
+    }
+
+    /* When a file is dropped in a slot */
+    .slot-content {
+        margin-top: 10px;
+    }
+</style>
+
+<div class="card">
+    <div class="card-header">
+        <div style="float:left;">
+            <i class="fa fa-cloud-upload"></i> Envio de Documentos
+        </div>
+        <div style="float:right;">
+            <!-- Actions injected by Adianti -->
+            _ACTIONS_
+        </div>
+        <div style="clear:both;"></div>
+    </div>
+
+    <div class="card-body">
+        <div class="row">
+            <!-- Left Column: Staging Area -->
+            <div class="col-md-5">
+                <h4 style="margin-bottom: 15px; color: #555;">1. Arraste seus arquivos aqui</h4>
+
+                <div id="staging-area" class="staging-area" ondrop="handleDropStaging(event)"
+                    ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div id="upload-instruction">
+                        <i class="fa fa-cloud-upload fa-3x" style="color: #ccc; margin-bottom: 10px;"></i>
+                        <p>Arraste arquivos (PDF, JPG, PNG)</p>
+                        <p>ou clique para selecionar</p>
+                    </div>
+                    <!-- Hidden file input for click-to-upload -->
+                    <input type="file" id="file-input-trigger" multiple style="display:none;"
+                        onchange="handleFileSelect(event)">
+                    <div id="staging-files"
+                        style="display: flex; flex-wrap: wrap; justify-content: center; margin-top: 10px;"></div>
+                </div>
+
+                <div class="alert alert-info" style="margin-top: 20px; font-size: 12px;">
+                    <i class="fa fa-info-circle"></i> Primeiro faça o upload dos arquivos nesta área, depois arraste-os
+                    para os requisitos ao lado.
+                </div>
+            </div>
+
+            <!-- Right Column: Requirements -->
+            <div class="col-md-7">
+                <h4 style="margin-bottom: 15px; color: #555;">2. Associe aos requisitos</h4>
+
+                <div id="requirements-list">
+                    <!--Loop Requirements-->
+                    <!--[requirements]-->
+                    <div class="requirement-item">
+                        <div class="requirement-slot" id="slot_{$doc_id}" ondrop="handleDropSlot(event, '{$doc_id}')"
+                            ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                            <h5>
+                                <i class="fa fa-file-text-o"></i> {$doc_name}
+                                <span class="badge badge-secondary" id="badge_{$doc_id}">Pendente</span>
+                            </h5>
+                            <!-- Hidden input store the temp filename -->
+                            <input type="hidden" name="doc_{$doc_id}" id="input_{$doc_id}" value="">
+
+                            <div id="content_{$doc_id}" class="slot-content">
+                                <div class="doc-placeholder">Arraste o arquivo correspondente aqui</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--[/requirements]-->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Upload and Drag Logic ---
+    console.log('Drag and Drop Script Loaded');
+
+    // Trigger file input on click
+    document.getElementById('staging-area').addEventListener('click', function (e) {
+        if (e.target.classList.contains('remove-file')) return; // ignore delete clicks
+        if (e.target.closest('.file-card')) return; // ignore card clicks
+        document.getElementById('file-input-trigger').click();
+    });
+
+    function handleDragOver(ev) {
+        ev.preventDefault();
+        ev.currentTarget.classList.add('dragover');
+        if (ev.currentTarget.classList.contains('requirement-slot')) {
+            ev.currentTarget.classList.add('highlight');
+        }
+    }
+
+    function handleDragLeave(ev) {
+        ev.currentTarget.classList.remove('dragover');
+        ev.currentTarget.classList.remove('highlight');
+    }
+
+    // Handle files dropped from desktop to staging
+    function handleDropStaging(ev) {
+        console.log('Drop detected on staging');
+        ev.preventDefault();
+        ev.currentTarget.classList.remove('dragover');
+
+        // Check if dropping files from desktop
+        if (ev.dataTransfer.files && ev.dataTransfer.files.length > 0) {
+            console.log('Files dropped:', ev.dataTransfer.files.length);
+            uploadFiles(ev.dataTransfer.files);
+        } else {
+            console.log('No files in drop');
+        }
+    }
+
+    // Handle file selection via dialog
+    function handleFileSelect(ev) {
+        console.log('File selected via dialog');
+        if (ev.target.files.length > 0) {
+            uploadFiles(ev.target.files);
+        }
+    }
+
+    // Upload files using Adianti Service
+    function uploadFiles(files) {
+        console.log('Processing upload for files:', files);
+        document.getElementById('upload-instruction').style.display = 'none';
+
+        Array.from(files).forEach(file => {
+            let formData = new FormData();
+            formData.append('fileName', file);
+
+            // UI Feedback: Loading
+            let loadingId = 'loading_' + Math.floor(Math.random() * 1000);
+            addStagingCard(file.name, loadingId, true);
+
+            // AJAX Upload
+            $.ajax({
+                url: 'engine.php?class=AdiantiUploaderService&method=onUpload',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    console.log('Upload success:', response);
+                    // Update card with real temp path
+                    let res = typeof response === 'string' ? JSON.parse(response) : response;
+                    if (res.fileName) {
+                        updateStagingCard(loadingId, res.fileName, file.name);
+                    } else {
+                        removeStagingCard(loadingId);
+                        if (typeof Adianti !== 'undefined' && Adianti.showDebugMessage) Adianti.showDebugMessage('Erro no upload: ' + JSON.stringify(res));
+                        else alert('Erro no upload: ' + JSON.stringify(res));
+                    }
+                },
+                error: function (xhr) {
+                    console.error('Upload error', xhr);
+                    removeStagingCard(loadingId);
+                }
+            });
+        });
+    }
+
+    function addStagingCard(displayName, tempId, isLoading = false) {
+        console.log('Adding card:', displayName, tempId);
+        let container = document.getElementById('staging-files');
+        let card = document.createElement('div');
+        card.className = 'file-card';
+        card.id = tempId;
+        card.draggable = !isLoading;
+
+        if (!isLoading) {
+            card.ondragstart = function (ev) {
+                ev.dataTransfer.setData("text/plain", JSON.stringify({
+                    id: tempId,
+                    name: displayName,
+                    path: card.dataset.path // stored later
+                }));
+                ev.dataTransfer.effectAllowed = "move";
+            };
+        }
+
+        // Prevent click propagation on card (so it doesn't trigger file input)
+        card.onclick = function (e) { e.stopPropagation(); };
+
+        let icon = isLoading ? 'fa-spinner fa-spin' : 'fa-file-pdf-o';
+
+        card.innerHTML = `
+            <i class="fa ${icon}"></i>
+            <span title="${displayName}">${displayName}</span>
+        `;
+        container.appendChild(card);
+    }
+
+    function updateStagingCard(tempId, serverPath, displayName) {
+        console.log('Updating card:', tempId, serverPath);
+        let card = document.getElementById(tempId);
+        if (card) {
+            card.dataset.path = serverPath;
+            card.querySelector('i').className = 'fa fa-file-pdf-o'; // ready
+            card.draggable = true;
+
+            // Re-attach drag event now that it is ready
+            card.ondragstart = function (ev) {
+                ev.dataTransfer.setData("text/plain", JSON.stringify({
+                    id: tempId,
+                    name: displayName,
+                    path: card.dataset.path
+                }));
+                ev.dataTransfer.effectAllowed = "move";
+            };
+        }
+    }
+
+    function removeStagingCard(tempId) {
+        let card = document.getElementById(tempId);
+        if (card) card.remove();
+    }
+
+    // Handle dropping a staging card into a requirement slot
+    function handleDropSlot(ev, docId) {
+        console.log('Drop on slot:', docId);
+        ev.preventDefault();
+        ev.currentTarget.classList.remove('highlight');
+
+        let dataStr = ev.dataTransfer.getData("text/plain");
+        if (!dataStr) return; // not a valid drag
+
+        try {
+            let data = JSON.parse(dataStr);
+            if (!data.path) return; // incomplete upload
+
+            // Assign file to this slot
+            assignFileToSlot(docId, data);
+
+            // Remove from staging
+            removeStagingCard(data.id);
+
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function assignFileToSlot(docId, fileData) {
+        let input = document.getElementById('input_' + docId);
+        let content = document.getElementById('content_' + docId);
+        let badge = document.getElementById('badge_' + docId);
+
+        // Update hidden input
+        input.value = fileData.path; // sends 'tmp/filename.pdf'
+
+        // Update UI
+        badge.className = 'badge badge-success';
+        badge.innerText = 'Preenchido';
+
+        content.innerHTML = `
+            <div class="alert alert-success" style="margin:0; padding: 8px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:80%;">
+                    <i class="fa fa-check"></i> ${fileData.name}
+                </div>
+                <button type="button" class="btn btn-xs btn-danger" onclick="removeFileFromSlot('${docId}', '${fileData.id}', '${fileData.name}', '${fileData.path}')" title="Remover">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+        `;
+    }
+
+    function removeFileFromSlot(docId, oldId, oldName, oldPath) {
+        // Return to staging
+        // We reuse addStagingCard logic but need to set the path manually
+        let newId = 'restored_' + Math.floor(Math.random() * 1000);
+        addStagingCard(oldName, newId, false);
+        updateStagingCard(newId, oldPath, oldName);
+
+        // Clear slot
+        let input = document.getElementById('input_' + docId);
+        input.value = '';
+
+        let badge = document.getElementById('badge_' + docId);
+        badge.className = 'badge badge-secondary';
+        badge.innerText = 'Pendente';
+
+        let content = document.getElementById('content_' + docId);
+        content.innerHTML = '<div class="doc-placeholder">Arraste o arquivo correspondente aqui</div>';
+    }
+
+</script>
+<!--[/main]-->
