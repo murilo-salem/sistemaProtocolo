@@ -240,6 +240,9 @@ class ProjetoList extends TPage
             // Delete client-project links first
             ClienteProjeto::where('projeto_id', '=', $key)->delete();
             
+            // Delete deliveries
+            Entrega::where('projeto_id', '=', $key)->delete();
+
             ProjetoDocumento::where('projeto_id', '=', $key)->delete();
             
             $projeto = new Projeto($key);
