@@ -1,90 +1,146 @@
 <!--[main]-->
-<!-- ============================================================================ -->
-<!-- ARQUIVO: app/resources/dashboard_gestor.html -->
-<!-- ============================================================================ -->
+<!-- Dashboard Gestor - Design Moderno -->
 
-<div class="container-fluid animated fadeIn">
-    <!-- ======= CARDS PRINCIPAIS ======= -->
-    <div class="row">
-        <!-- Clientes -->
-        <div class="col-lg-3 col-md-6 col-sm-6">
-            <div class="info-card gradient-aqua shadow-lg">
-                <div class="icon"><i class="fa fa-users"></i></div>
-                <div class="content">
-                    <h5>Clientes Ativos</h5>
-                    <h2>{$total_clientes}</h2>
-                </div>
+<div class="dashboard-modern">
+    <!-- ======= KPI CARDS - Grid Horizontal ======= -->
+    <div class="kpi-grid">
+        <!-- Card: Clientes Ativos -->
+        <div class="kpi-card">
+            <div class="kpi-icon icon-blue">
+                <i class="fa fa-users"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Clientes Ativos</span>
+                <h2 class="kpi-value">{$total_clientes}</h2>
             </div>
         </div>
 
-        <!-- Projetos -->
-        <div class="col-lg-3 col-md-6 col-sm-6">
-            <div class="info-card gradient-green shadow-lg">
-                <div class="icon"><i class="fa fa-briefcase"></i></div>
-                <div class="content">
-                    <h5>Projetos Ativos</h5>
-                    <h2>{$total_projetos}</h2>
-                </div>
+        <!-- Card: Projetos Ativos -->
+        <div class="kpi-card">
+            <div class="kpi-icon icon-green">
+                <i class="fa fa-briefcase"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Projetos Ativos</span>
+                <h2 class="kpi-value">{$total_projetos}</h2>
             </div>
         </div>
 
-        <!-- Pendentes -->
-        <div class="col-lg-3 col-md-6 col-sm-6">
-            <div class="info-card gradient-yellow shadow-lg">
-                <div class="icon"><i class="fa fa-clock-o"></i></div>
-                <div class="content">
-                    <h5>Entregas Pendentes</h5>
-                    <h2>{$entregas_pendentes}</h2>
-                </div>
+        <!-- Card: Entregas Pendentes -->
+        <div class="kpi-card">
+            <div class="kpi-icon icon-yellow">
+                <i class="fa fa-clock-o"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Entregas Pendentes</span>
+                <h2 class="kpi-value">{$entregas_pendentes}</h2>
             </div>
         </div>
 
-        <!-- Aprovadas -->
-        <div class="col-lg-3 col-md-6 col-sm-6">
-            <div class="info-card gradient-red shadow-lg">
-                <div class="icon"><i class="fa fa-check-circle"></i></div>
-                <div class="content">
-                    <h5>Entregas Aprovadas</h5>
-                    <h2>{$entregas_aprovadas}</h2>
-                </div>
+        <!-- Card: Entregas Aprovadas -->
+        <div class="kpi-card">
+            <div class="kpi-icon icon-emerald">
+                <i class="fa fa-check-circle"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Aprovadas (Mês)</span>
+                <h2 class="kpi-value">{$entregas_aprovadas}</h2>
             </div>
         </div>
     </div>
 
-    <!-- ======= VISÃO GERAL ======= -->
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="box box-primary shadow">
-                <div class="box-header with-border">
-                    <h3 class="box-title">
-                        <i class="fa fa-bar-chart"></i> Visão Geral do Mês Atual
-                    </h3>
+    <!-- ======= VISÃO GERAL + ALERTAS ======= -->
+    <div class="dashboard-row">
+        <!-- Visão Geral do Mês -->
+        <div class="dashboard-card card-wide">
+            <div class="card-header-modern">
+                <div class="card-title-group">
+                    <i class="fa fa-bar-chart"></i>
+                    <h3>Visão Geral do Mês</h3>
                 </div>
-                <div class="box-body text-center">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="metric">
-                                <span>Total de Entregas</span>
-                                <h2 class="text-primary">{$total_entregas}</h2>
-                            </div>
+            </div>
+            <div class="card-body-modern">
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-icon-small bg-blue-light">
+                            <i class="fa fa-file-text"></i>
                         </div>
-                        <div class="col-md-3">
-                            <div class="metric">
-                                <span>Em Análise</span>
-                                <h2 class="text-warning">{$entregas_em_analise}</h2>
-                            </div>
+                        <div class="metric-data">
+                            <span class="metric-label">Total de Entregas</span>
+                            <h3 class="metric-number">{$total_entregas}</h3>
                         </div>
-                        <div class="col-md-3">
-                            <div class="metric">
-                                <span>Rejeitadas</span>
-                                <h2 class="text-danger">{$entregas_rejeitadas}</h2>
-                            </div>
+                    </div>
+
+                    <div class="metric-item">
+                        <div class="metric-icon-small bg-yellow-light">
+                            <i class="fa fa-hourglass-half"></i>
                         </div>
-                        <div class="col-md-3">
-                            <div class="metric">
-                                <span>Taxa de Aprovação</span>
-                                <h2 class="text-success">{$taxa_aprovacao}%</h2>
-                            </div>
+                        <div class="metric-data">
+                            <span class="metric-label">Em Análise</span>
+                            <h3 class="metric-number">{$entregas_em_analise}</h3>
+                        </div>
+                    </div>
+
+                    <div class="metric-item">
+                        <div class="metric-icon-small bg-red-light">
+                            <i class="fa fa-times-circle"></i>
+                        </div>
+                        <div class="metric-data">
+                            <span class="metric-label">Rejeitadas</span>
+                            <h3 class="metric-number">{$entregas_rejeitadas}</h3>
+                        </div>
+                    </div>
+
+                    <div class="metric-item">
+                        <div class="metric-icon-small bg-green-light">
+                            <i class="fa fa-percent"></i>
+                        </div>
+                        <div class="metric-data">
+                            <span class="metric-label">Taxa de Aprovação</span>
+                            <h3 class="metric-number">{$taxa_aprovacao}%</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Atenção Necessária -->
+        <div class="dashboard-card">
+            <div class="card-header-modern">
+                <div class="card-title-group">
+                    <i class="fa fa-exclamation-circle"></i>
+                    <h3>Atenção Necessária</h3>
+                </div>
+            </div>
+            <div class="card-body-modern">
+                <div class="alert-list">
+                    <div class="alert-item alert-warning">
+                        <div class="alert-icon">
+                            <i class="fa fa-clock-o"></i>
+                        </div>
+                        <div class="alert-content">
+                            <span class="alert-count">{$entregas_pendentes}</span>
+                            <span class="alert-text">entregas aguardando envio</span>
+                        </div>
+                    </div>
+
+                    <div class="alert-item alert-info">
+                        <div class="alert-icon">
+                            <i class="fa fa-search"></i>
+                        </div>
+                        <div class="alert-content">
+                            <span class="alert-count">{$entregas_em_analise}</span>
+                            <span class="alert-text">entregas para validar</span>
+                        </div>
+                    </div>
+
+                    <div class="alert-item alert-danger">
+                        <div class="alert-icon">
+                            <i class="fa fa-warning"></i>
+                        </div>
+                        <div class="alert-content">
+                            <span class="alert-count">{$entregas_atrasadas}</span>
+                            <span class="alert-text">entregas com atraso</span>
                         </div>
                     </div>
                 </div>
@@ -92,211 +148,407 @@
         </div>
     </div>
 
-    <!-- ======= AVISOS E AÇÕES ======= -->
-    <div class="row mt-4">
-        <!-- Atenção -->
-        <div class="col-md-6">
-            <div class="box box-warning shadow">
-                <div class="box-header with-border">
-                    <h3 class="box-title">
-                        <i class="fa fa-exclamation-triangle"></i> Atenção Necessária
-                    </h3>
-                </div>
-                <div class="box-body">
-                    <p><i class="fa fa-circle text-yellow"></i> <strong>{$entregas_pendentes}</strong> entregas
-                        aguardando envio</p>
-                    <p><i class="fa fa-circle text-orange"></i> <strong>{$entregas_em_analise}</strong> entregas para
-                        validar</p>
-                    <p><i class="fa fa-circle text-red"></i> <strong>{$entregas_atrasadas}</strong> entregas com atraso
-                    </p>
-                </div>
+    <!-- ======= AÇÕES RÁPIDAS ======= -->
+    <div class="dashboard-card">
+        <div class="card-header-modern">
+            <div class="card-title-group">
+                <i class="fa fa-rocket"></i>
+                <h3>Ações Rápidas</h3>
             </div>
         </div>
-
-        <!-- Ações -->
-        <div class="col-md-6">
-            <div class="box box-success shadow">
-                <div class="box-header with-border">
-                    <h3 class="box-title">
-                        <i class="fa fa-rocket"></i> Ações Rápidas
-                    </h3>
-                </div>
-                <div class="box-body">
-                    <a href="index.php?class=ProjetoForm" class="btn btn-success btn-lg btn-block">
-                        <i class="fa fa-plus"></i> Novo Projeto
-                    </a>
-                    <a href="index.php?class=ClienteForm" class="btn btn-primary btn-lg btn-block">
-                        <i class="fa fa-user-plus"></i> Novo Cliente
-                    </a>
-                    <a href="index.php?class=EntregaList" class="btn btn-warning btn-lg btn-block">
-                        <i class="fa fa-search"></i> Ver Todas as Entregas
-                    </a>
-                </div>
+        <div class="card-body-modern">
+            <div class="quick-actions">
+                <a href="index.php?class=ProjetoForm" class="action-btn action-btn-primary">
+                    <i class="fa fa-plus-circle"></i>
+                    <span>Novo Projeto</span>
+                </a>
+                <a href="index.php?class=ClienteForm" class="action-btn action-btn-secondary">
+                    <i class="fa fa-user-plus"></i>
+                    <span>Novo Cliente</span>
+                </a>
+                <a href="index.php?class=EntregaList" class="action-btn action-btn-outline">
+                    <i class="fa fa-list"></i>
+                    <span>Ver Entregas</span>
+                </a>
+                <a href="index.php?class=HistoricoList" class="action-btn action-btn-outline">
+                    <i class="fa fa-history"></i>
+                    <span>Histórico</span>
+                </a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ======= ESTILO ======= -->
 <style>
-    /* ===== RESET BÁSICO ===== */
-    body,
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6,
-    p {
-        margin: 0;
-        padding: 0;
+    /* ===== DASHBOARD MODERN STYLES ===== */
+    .dashboard-modern {
+        padding: 24px;
+        background: #f4f6f9;
+        min-height: calc(100vh - 120px);
     }
 
-    /* ===== INFO CARDS ===== */
-    .info-card {
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: start !important;
-        color: #fff !important;
-        border-radius: 6px !important;
-        padding: 5px 10px !important;
-        margin-bottom: 8px !important;
-        transition: all 0.25s ease !important;
-        min-height: auto !important;
-        height: auto !important;
+    /* ===== KPI CARDS GRID ===== */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 24px;
     }
 
-    .info-card .icon {
-        font-size: 18px !important;
-        margin-right: 8px !important;
-        opacity: 0.9 !important;
+    .kpi-card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e5e7eb;
+        height: auto;
+        transition: all 0.2s ease;
     }
 
-    .info-card .content h5 {
-        font-size: 10px !important;
-        text-transform: uppercase !important;
-        margin-bottom: 0 !important;
-        letter-spacing: 0.3px !important;
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-    .info-card .content h2 {
-        font-size: 16px !important;
-        font-weight: 700 !important;
-        color: #fff !important;
-        line-height: 1.1 !important;
-        margin: 0 !important;
+    .kpi-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
     }
 
-    .info-card:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15) !important;
+    .kpi-icon.icon-blue {
+        background: rgba(30, 58, 95, 0.1);
+        color: #1e3a5f;
     }
 
-    /* ===== GRADIENTES ===== */
-    .gradient-aqua {
-        background: linear-gradient(135deg, #00c6ff, #0072ff);
+    .kpi-icon.icon-green {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
     }
 
-    .gradient-green {
-        background: linear-gradient(135deg, #43e97b, #38f9d7);
+    .kpi-icon.icon-yellow {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
     }
 
-    .gradient-yellow {
-        background: linear-gradient(135deg, #f7971e, #ffd200);
+    .kpi-icon.icon-emerald {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
     }
 
-    .gradient-red {
-        background: linear-gradient(135deg, #ff416c, #ff4b2b);
+    .kpi-content {
+        flex: 1;
     }
 
-    /* ===== BOX ===== */
-    .box {
-        background: #fff;
-        border-radius: 10px;
-        border: none;
-        margin-bottom: 25px;
-        transition: all 0.3s ease;
+    .kpi-label {
+        font-size: 13px;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+        display: block;
     }
 
-    .box:hover {
-        transform: translateY(-3px);
+    .kpi-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 4px 0 0 0;
+        line-height: 1;
     }
 
-    .box-header {
-        padding: 12px 20px;
-        border-bottom: 1px solid #eee;
-        background: #fafafa;
-        border-top-left-radius: 10px;
-        border-top-right-radius: 10px;
+    /* ===== DASHBOARD ROW ===== */
+    .dashboard-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 20px;
+        margin-bottom: 24px;
     }
 
-    .box-title {
+    /* ===== CARDS MODERNOS ===== */
+    .dashboard-card {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e5e7eb;
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+
+    .dashboard-card.card-wide {
+        margin-bottom: 0;
+    }
+
+    .card-header-modern {
+        padding: 18px 24px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #ffffff;
+    }
+
+    .card-title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .card-title-group i {
+        font-size: 18px;
+        color: #4a90d9;
+    }
+
+    .card-title-group h3 {
         font-size: 16px;
         font-weight: 600;
-        color: #444;
+        color: #1f2937;
+        margin: 0;
     }
 
-    .box-body {
-        padding: 20px;
+    .card-body-modern {
+        padding: 24px;
     }
 
-    /* ===== MÉTRICAS ===== */
-    .metric span {
-        display: block;
+    /* ===== METRICS GRID ===== */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+
+    .metric-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px;
+        background: #f9fafb;
+        border-radius: 10px;
+    }
+
+    .metric-icon-small {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .bg-blue-light {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    .bg-yellow-light {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .bg-red-light {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    .bg-green-light {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .metric-data {
+        flex: 1;
+    }
+
+    .metric-label {
+        font-size: 12px;
+        color: #6b7280;
         text-transform: uppercase;
-        color: #777;
-        font-size: 13px;
-        margin-bottom: 8px;
+        letter-spacing: 0.3px;
+        display: block;
     }
 
-    .metric h2 {
+    .metric-number {
+        font-size: 24px;
         font-weight: 700;
-        font-size: 28px;
+        color: #1f2937;
+        margin: 4px 0 0 0;
     }
 
-    /* ===== BOTÕES ===== */
-    .btn-lg {
-        padding: 12px;
-        font-size: 15px;
+    /* ===== ALERT LIST ===== */
+    .alert-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .alert-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 16px;
+        border-radius: 10px;
+        border-left: 4px solid;
+    }
+
+    .alert-item.alert-warning {
+        background: rgba(245, 158, 11, 0.08);
+        border-color: #f59e0b;
+    }
+
+    .alert-item.alert-info {
+        background: rgba(59, 130, 246, 0.08);
+        border-color: #3b82f6;
+    }
+
+    .alert-item.alert-danger {
+        background: rgba(239, 68, 68, 0.08);
+        border-color: #ef4444;
+    }
+
+    .alert-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+
+    .alert-warning .alert-icon {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+    }
+
+    .alert-info .alert-icon {
+        background: rgba(59, 130, 246, 0.15);
+        color: #3b82f6;
+    }
+
+    .alert-danger .alert-icon {
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
+    }
+
+    .alert-content {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+    }
+
+    .alert-count {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .alert-text {
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    /* ===== QUICK ACTIONS ===== */
+    .quick-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 14px;
         font-weight: 600;
-        border-radius: 8px;
-        transition: 0.25s ease;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: 2px solid transparent;
     }
 
-    .btn-lg:hover {
-        opacity: 0.9;
-        transform: scale(1.03);
+    .action-btn i {
+        font-size: 16px;
     }
 
-    /* ===== SOMBRAS ===== */
-    .shadow {
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    .action-btn-primary {
+        background: #1e3a5f;
+        color: white;
     }
 
-    .shadow-lg {
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    .action-btn-primary:hover {
+        background: #2d5a87;
+        color: white;
+        transform: translateY(-2px);
+        text-decoration: none;
     }
 
-    /* ===== CORES DE TEXTO ===== */
-    .text-primary {
-        color: #007bff !important;
+    .action-btn-secondary {
+        background: #10b981;
+        color: white;
     }
 
-    .text-success {
-        color: #28a745 !important;
+    .action-btn-secondary:hover {
+        background: #0ea572;
+        color: white;
+        transform: translateY(-2px);
+        text-decoration: none;
     }
 
-    .text-warning {
-        color: #ffc107 !important;
+    .action-btn-outline {
+        background: transparent;
+        border-color: #e5e7eb;
+        color: #374151;
     }
 
-    .text-danger {
-        color: #dc3545 !important;
+    .action-btn-outline:hover {
+        border-color: #4a90d9;
+        color: #4a90d9;
+        background: rgba(74, 144, 217, 0.05);
+        text-decoration: none;
     }
 
-    /* ===== MARGENS ===== */
-    .mt-4 {
-        margin-top: 25px;
+    /* ===== RESPONSIVIDADE ===== */
+    @media (max-width: 1200px) {
+        .kpi-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .metrics-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .dashboard-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-modern {
+            padding: 16px;
+        }
+
+        .kpi-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .metrics-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .quick-actions {
+            flex-direction: column;
+        }
+
+        .action-btn {
+            justify-content: center;
+        }
     }
 </style>
 <!--[/main]-->

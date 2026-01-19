@@ -355,7 +355,7 @@ class SystemChat extends TPage
                     $html .= "
                     <div id='chat_contact_{$u->id}' class='chat-contact' onclick=\"Adianti.waitMessage = false; __adianti_post_data('form_chat', 'class=SystemChat&method=onSelectContact&target_id={$safe_target}');\" style='display:flex; align-items:center; cursor:pointer;'>
                         <div class='chat-contact-avatar'>{$initials}</div>
-                        <div class='chat-contact-info'>
+                        <div class='chat-contact-info'>Erro no upload: {"type":"error","msg":"O servidor não recebeu o arquivo. Verifique os limites do servidor. O limite atual é upload_max_filesize: 40M"}
                             <h3>{$u_nome}</h3>
                             <p class='chat-last-message'>{$txt}</p>
                         </div>

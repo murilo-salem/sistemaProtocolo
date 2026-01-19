@@ -73,6 +73,16 @@ class EntregaList extends TPage
             return $value ? date('d/m/Y H:i', strtotime($value)) : '-';
         });
         
+        $col_status->setTransformer(function($value) {
+            $badges = [
+                'pendente' => '<span class="badge-status badge-pending">Pendente</span>',
+                'em_analise' => '<span class="badge-status badge-analysis">Em Análise</span>',
+                'aprovado' => '<span class="badge-status badge-approved">Aprovado</span>',
+                'rejeitado' => '<span class="badge-status badge-rejected">Rejeitado</span>'
+            ];
+            return $badges[$value] ?? '<span class="badge-status badge-inactive">' . ucfirst($value) . '</span>';
+        });
+        
         $this->datagrid->addColumn($col_id);
         $this->datagrid->addColumn($col_cliente);
         $this->datagrid->addColumn($col_projeto);

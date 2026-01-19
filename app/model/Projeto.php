@@ -14,17 +14,27 @@ class Projeto extends TRecord
         parent::addAttribute('documentos_json');
         parent::addAttribute('dia_vencimento');
         parent::addAttribute('ativo');
+        parent::addAttribute('company_template_id');
         parent::addAttribute('created_at');
         parent::addAttribute('updated_at');
     }
     
-    public function get_documentos()
+    public function get_documentos_list()
     {
-        return json_decode($this->documentos_json, true) ?: [];
+        return $this->getItems('ProjetoDocumento', 'projeto_id');
     }
-    
-    public function set_documentos($array)
+
+    public function get_company_template()
     {
-        $this->documentos_json = json_encode($array, JSON_UNESCAPED_UNICODE);
+        return CompanyTemplate::find($this->company_template_id);
+    }
+
+    public function delete($id = NULL)
+    {
+        $id = isset($id) ? $id : $this->id;
+        
+        ProjetoDocumento::where('projeto_id', '=', $id)->delete();
+        
+        parent::delete($id);
     }
 }

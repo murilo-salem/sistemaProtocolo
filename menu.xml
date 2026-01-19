@@ -29,9 +29,13 @@
                 <action>ClienteList</action>
             </menuitem>
             <menuitem label="Novo Cliente">
-            <icon>fa-user-plus</icon>
-            <action>ClienteForm</action>
-        </menuitem>
+                <icon>fa-user-plus</icon>
+                <action>ClienteForm</action>
+            </menuitem>
+            <menuitem label="Empresas">
+                <icon>fa-building</icon>
+                <action>CompanyTemplateList</action>
+            </menuitem>
         </menu>
     </menuitem>
 

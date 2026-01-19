@@ -37,7 +37,11 @@ class ProjetoList extends TPage
         $col_ativo = new TDataGridColumn('ativo', 'Status', 'center', 100);
         
         $col_ativo->setTransformer(function($value) {
-            return $value == 1 ? 'Ativo' : 'Inativo';
+            if ($value == 1) {
+                return '<span class="badge-status badge-success">Ativo</span>';
+            } else {
+                return '<span class="badge-status badge-inactive">Inativo</span>';
+            }
         });
         
         $this->datagrid->addColumn($col_id);

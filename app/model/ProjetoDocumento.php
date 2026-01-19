@@ -12,5 +12,7 @@ class ProjetoDocumento extends TRecord
         parent::addAttribute('projeto_id');
         parent::addAttribute('nome_documento');
         parent::addAttribute('obrigatorio');
+        parent::addAttribute('content');
+        parent::addAttribute('status');
     }
 }
