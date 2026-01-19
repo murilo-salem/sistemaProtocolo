@@ -2417,3 +2417,562 @@ body:not(.dashboard-page) .wrapper .main .content {
     font-size: 18px;
     color: #3b82f6;
 }
+
+/* ============================
+   MODERN LIST PAGES
+   ============================ */
+
+/* List Page Container */
+.list-page-container {
+    padding: 24px;
+    background: #f3f4f6;
+    min-height: calc(100vh - 120px);
+}
+
+/* Page Header */
+.list-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.list-page-header .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.list-page-header .page-title i {
+    color: #4a90d9;
+    font-size: 24px;
+}
+
+/* Add New Button */
+.btn-add-new {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    transition: all 0.2s ease;
+}
+
+.btn-add-new:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-add-new i {
+    font-size: 16px;
+}
+
+/* List Card */
+.list-card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+    border: none;
+    overflow: hidden;
+}
+
+/* Quick Filter Tabs */
+.quick-filter-tabs {
+    display: flex;
+    gap: 0;
+    padding: 0;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.filter-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b7280;
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.filter-tab:hover {
+    color: #1e3a5f;
+    background: rgba(30, 58, 95, 0.03);
+    text-decoration: none;
+}
+
+.filter-tab.active {
+    color: #1e3a5f;
+    border-bottom-color: #1e3a5f;
+    background: #ffffff;
+}
+
+.filter-tab i {
+    font-size: 14px;
+}
+
+/* Search Bar */
+.search-bar {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.search-bar form {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.search-input-wrapper {
+    flex: 1;
+    position: relative;
+}
+
+.search-input-wrapper .search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 16px;
+    z-index: 1;
+}
+
+.search-input-wrapper input,
+.search-input-wrapper .tentry {
+    width: 100% !important;
+    padding: 14px 20px 14px 48px !important;
+    background: #f9fafb !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-size: 15px !important;
+    color: #1f2937 !important;
+    transition: all 0.2s ease !important;
+}
+
+.search-input-wrapper input:focus,
+.search-input-wrapper .tentry:focus {
+    background: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1) !important;
+}
+
+.btn-search {
+    padding: 14px 24px !important;
+    background: #1e3a5f !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-search:hover {
+    background: #2d5a87 !important;
+}
+
+/* DataGrid Wrapper */
+.datagrid-wrapper {
+    padding: 0;
+}
+
+/* Modern DataGrid */
+.modern-datagrid,
+.list-card .table,
+.list-card .tdatagrid {
+    margin: 0 !important;
+    background: #ffffff !important;
+}
+
+.modern-datagrid thead th,
+.list-card .table thead th {
+    background: #ffffff !important;
+    border: none !important;
+    border-bottom: 1px solid #f3f4f6 !important;
+    padding: 16px 24px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+    color: #9ca3af !important;
+}
+
+.modern-datagrid tbody tr,
+.list-card .table tbody tr {
+    transition: all 0.2s ease !important;
+    border-bottom: 1px solid #f9fafb !important;
+}
+
+.modern-datagrid tbody tr:hover,
+.list-card .table tbody tr:hover {
+    background: #f0f9ff !important;
+    transform: scale(1.002) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+.modern-datagrid tbody td,
+.list-card .table tbody td {
+    padding: 16px 24px !important;
+    border: none !important;
+    vertical-align: middle !important;
+}
+
+/* Item Name with Icon/Avatar */
+.item-name {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.item-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: rgba(74, 144, 217, 0.1);
+    color: #4a90d9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.item-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.item-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.item-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.item-meta {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+/* Meta Value */
+.meta-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.meta-value i {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+/* Pagination Wrapper */
+.pagination-wrapper {
+    padding: 20px 24px;
+    background: #fafbfc;
+    border-top: 1px solid #f3f4f6;
+}
+
+/* Empty State for Lists */
+.list-empty-state {
+    text-align: center;
+    padding: 80px 40px;
+}
+
+.list-empty-state .empty-icon {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 24px;
+    background: #f3f4f6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.list-empty-state .empty-icon i {
+    font-size: 40px;
+    color: #9ca3af;
+}
+
+.list-empty-state h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #4b5563;
+    margin: 0 0 8px 0;
+}
+
+.list-empty-state p {
+    font-size: 15px;
+    color: #9ca3af;
+    margin: 0 0 24px 0;
+}
+
+/* Responsive List */
+@media (max-width: 768px) {
+    .list-page-container {
+        padding: 16px;
+    }
+
+    .list-page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .list-page-header .page-title {
+        font-size: 22px;
+    }
+
+    .btn-add-new {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .quick-filter-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .filter-tab {
+        padding: 14px 16px;
+        white-space: nowrap;
+    }
+
+    .search-bar form {
+        flex-direction: column;
+    }
+
+    .search-input-wrapper {
+        width: 100%;
+    }
+
+    .btn-search {
+        width: 100% !important;
+    }
+
+    .modern-datagrid thead th,
+    .modern-datagrid tbody td {
+        padding: 12px 16px !important;
+    }
+
+    .item-icon,
+    .item-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+}
+
+/* Additional List Styles */
+.list-info-header {
+    padding: 16px 24px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.04) 100%);
+    border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+.list-info-header .info-text {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #065f46;
+}
+
+.list-info-header .info-text i {
+    font-size: 16px;
+    color: #10b981;
+}
+
+/* Filter Row */
+.filter-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.filter-field {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filter-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 8px;
+    padding-bottom: 2px;
+}
+
+.btn-clear {
+    padding: 14px 24px !important;
+    background: transparent !important;
+    color: #6b7280 !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-clear:hover {
+    background: #f3f4f6 !important;
+    border-color: #d1d5db !important;
+}
+
+/* Icon Variants */
+.item-icon-success {
+    background: rgba(16, 185, 129, 0.1) !important;
+    color: #10b981 !important;
+}
+
+.item-icon-warning {
+    background: rgba(245, 158, 11, 0.1) !important;
+    color: #f59e0b !important;
+}
+
+.item-icon-danger {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: #ef4444 !important;
+}
+
+/* Text muted */
+.text-muted {
+    color: #9ca3af !important;
+}
+
+/* Fix action column styling */
+.modern-datagrid td:first-child,
+.list-card .table td:first-child {
+    width: 50px !important;
+    text-align: center !important;
+}
+
+.modern-datagrid td:nth-child(2),
+.list-card .table td:nth-child(2) {
+    width: 50px !important;
+    text-align: center !important;
+}
+
+/* Action column header fix */
+.modern-datagrid th:first-child,
+.modern-datagrid th:nth-child(2),
+.list-card .table th:first-child,
+.list-card .table th:nth-child(2) {
+    width: 50px !important;
+    min-width: 50px !important;
+}
+
+/* Action buttons styling */
+.modern-datagrid a[generator="adianti"],
+.list-card .table a[generator="adianti"],
+.tdatagrid_action {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 8px !important;
+    background: #f3f4f6 !important;
+    color: #6b7280 !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+}
+
+.modern-datagrid a[generator="adianti"]:hover,
+.list-card .table a[generator="adianti"]:hover,
+.tdatagrid_action:hover {
+    background: #e5e7eb !important;
+    transform: scale(1.05) !important;
+}
+
+.modern-datagrid a[generator="adianti"] i.fa-edit,
+.modern-datagrid a[generator="adianti"] i.blue {
+    color: #3b82f6 !important;
+}
+
+.modern-datagrid a[generator="adianti"] i.fa-trash,
+.modern-datagrid a[generator="adianti"] i.red {
+    color: #ef4444 !important;
+}
+
+.modern-datagrid a[generator="adianti"] i.fa-check,
+.modern-datagrid a[generator="adianti"] i.green {
+    color: #10b981 !important;
+}
+
+.modern-datagrid a[generator="adianti"] i.fa-file-pdf-o,
+.modern-datagrid a[generator="adianti"] i.orange {
+    color: #f59e0b !important;
+}
+
+.modern-datagrid a[generator="adianti"] i.fa-download {
+    color: #10b981 !important;
+}
+
+.modern-datagrid a[generator="adianti"] i.fa-eye {
+    color: #3b82f6 !important;
+}
+
+/* Fix item-name alignment to work in any column */
+.item-name {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+}
+
+/* Make sure icons/avatars don't shrink */
+.item-icon,
+.item-avatar {
+    flex-shrink: 0 !important;
+}
+
+/* Fix meta-value to be inline */
+.meta-value {
+    white-space: nowrap !important;
+}

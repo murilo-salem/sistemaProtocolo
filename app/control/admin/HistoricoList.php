@@ -1,13 +1,6 @@
 <?php
 /**
- * HistoricoList
- *
- * @version    1.0
- * @package    control
- * @subpackage admin
- * @author     Antigravity
- * @copyright  Copyright (c) 2024
- * @license    http://www.adianti.com.br/framework-license
+ * HistoricoList - Modernized
  */
 class HistoricoList extends TPage
 {
@@ -16,101 +9,179 @@ class HistoricoList extends TPage
     private $pageNavigation;
     private $loaded;
 
-    /**
-     * Class constructor
-     * Creates the page, the form and the listing
-     */
     public function __construct()
     {
         parent::__construct();
         
-        // Creates the form
-        $this->form = new BootstrapFormBuilder('form_search_Historico');
-        $this->form->setFormTitle('Histórico de Arquivos Consolidados');
-
-        // Fields
-        $cliente_id = new TDBUniqueSearch('cliente_id', 'database', 'Usuario', 'id', 'nome');
-        $projeto_id = new TDBUniqueSearch('projeto_id', 'database', 'Projeto', 'id', 'nome');
+        // Build the page HTML structure
+        $html = new TElement('div');
+        $html->class = 'list-page-container';
         
+        // Page Header
+        $pageHeader = new TElement('div');
+        $pageHeader->class = 'list-page-header';
+        
+        $headerLeft = new TElement('div');
+        $headerLeft->class = 'header-left';
+        $headerLeft->add('<h1 class="page-title"><i class="fa fa-history"></i> Histórico de Arquivos</h1>');
+        
+        $pageHeader->add($headerLeft);
+        $html->add($pageHeader);
+        
+        // Main Card
+        $card = new TElement('div');
+        $card->class = 'list-card';
+        
+        // Info Header
+        $infoHeader = new TElement('div');
+        $infoHeader->class = 'list-info-header';
+        $infoHeader->add('<div class="info-text"><i class="fa fa-check-circle"></i> Exibindo apenas entregas <strong>aprovadas e consolidadas</strong></div>');
+        $card->add($infoHeader);
+        
+        // Search Bar
+        $searchBar = new TElement('div');
+        $searchBar->class = 'search-bar';
+        
+        $this->form = new TForm('form_search_historico');
+        
+        $cliente_id = new TDBUniqueSearch('cliente_id', 'database', 'Usuario', 'id', 'nome');
         $cliente_id->setMinLength(0);
+        $cliente_id->setProperty('placeholder', 'Filtrar por cliente...');
+        $cliente_id->setSize('100%');
+        
+        $projeto_id = new TDBUniqueSearch('projeto_id', 'database', 'Projeto', 'id', 'nome');
         $projeto_id->setMinLength(0);
-
-        // Define fields to form
-        $this->form->addFields([new TLabel('Pessoa (Cliente):')], [$cliente_id]);
-        $this->form->addFields([new TLabel('Projeto:')], [$projeto_id]);
-
+        $projeto_id->setProperty('placeholder', 'Filtrar por projeto...');
+        $projeto_id->setSize('100%');
+        
+        $filterRow = new TElement('div');
+        $filterRow->class = 'filter-row';
+        
+        $clienteWrapper = new TElement('div');
+        $clienteWrapper->class = 'filter-field';
+        $clienteLabel = new TElement('label');
+        $clienteLabel->add('Cliente');
+        $clienteWrapper->add($clienteLabel);
+        $clienteWrapper->add($cliente_id);
+        
+        $projetoWrapper = new TElement('div');
+        $projetoWrapper->class = 'filter-field';
+        $projetoLabel = new TElement('label');
+        $projetoLabel->add('Projeto');
+        $projetoWrapper->add($projetoLabel);
+        $projetoWrapper->add($projeto_id);
+        
+        $btnWrapper = new TElement('div');
+        $btnWrapper->class = 'filter-buttons';
+        
+        $btnSearch = new TButton('btn_search');
+        $btnSearch->setAction(new TAction([$this, 'onSearch']), 'Buscar');
+        $btnSearch->class = 'btn-search';
+        
+        $btnClear = new TButton('btn_clear');
+        $btnClear->setAction(new TAction([$this, 'onClear']), 'Limpar');
+        $btnClear->class = 'btn-clear';
+        
+        $btnWrapper->add($btnSearch);
+        $btnWrapper->add($btnClear);
+        
+        $filterRow->add($clienteWrapper);
+        $filterRow->add($projetoWrapper);
+        $filterRow->add($btnWrapper);
+        
+        $this->form->add($filterRow);
+        $this->form->setFields([$cliente_id, $projeto_id, $btnSearch, $btnClear]);
+        
+        $searchBar->add($this->form);
+        $card->add($searchBar);
+        
+        // Restore form data
         $this->form->setData(TSession::getValue('HistoricoList_filter_data'));
 
-        // Action buttons
-        $btn_search = $this->form->addAction('Buscar', new TAction([$this, 'onSearch']), 'fa:search');
-        $btn_search->style = 'width: 100px'; 
-        
-        $btn_clear = $this->form->addAction('Limpar', new TAction([$this, 'onClear']), 'fa:eraser red');
-
-        // Creates the Datagrid
+        // DataGrid
         $this->datagrid = new BootstrapDatagridWrapper(new TDataGrid);
         $this->datagrid->width = '100%';
+        $this->datagrid->class = 'modern-datagrid';
 
-        $col_id = new TDataGridColumn('id', 'ID', 'center', '50');
-        $col_cliente = new TDataGridColumn('cliente_id', 'Pessoa', 'left');
-        $col_projeto = new TDataGridColumn('projeto_id', 'Projeto', 'left');
-        $col_mes = new TDataGridColumn('mes_referencia', 'Ref', 'center'); // Shortened
-        $col_data = new TDataGridColumn('data_aprovacao', 'Data Aprovação', 'center');
+        $col_cliente = new TDataGridColumn('cliente_id', 'Arquivo', 'left');
+        $col_mes = new TDataGridColumn('mes_referencia', 'Referência', 'center', 120);
+        $col_data = new TDataGridColumn('data_aprovacao', 'Data Aprovação', 'center', 150);
         
         // Transformers
-        $col_cliente->setTransformer(function($value){
-            return (new Usuario($value))->nome ?? $value;
-        });
-
-        $col_projeto->setTransformer(function($value){
-            return (new Projeto($value))->nome ?? $value;
+        $col_cliente->setTransformer(function($value, $object) {
+            try {
+                TTransaction::open('database');
+                $cliente = new Usuario($value);
+                $projeto = new Projeto($object->projeto_id);
+                TTransaction::close();
+                
+                $clienteNome = $cliente->nome ?? 'Cliente';
+                $projetoNome = $projeto->nome ?? 'Projeto';
+                
+                return "<div class='item-name'>
+                            <div class='item-icon item-icon-success'><i class='fa fa-file-pdf-o'></i></div>
+                            <div class='item-details'>
+                                <span class='item-title'>{$clienteNome}</span>
+                                <span class='item-meta'>{$projetoNome}</span>
+                            </div>
+                        </div>";
+            } catch (Exception $e) {
+                return $value;
+            }
         });
         
-        $col_mes->setTransformer(function($value, $object){
-             return str_pad($value, 2, '0', STR_PAD_LEFT) . '/' . $object->ano_referencia;
+        $col_mes->setTransformer(function($value, $object) {
+            $mesAno = str_pad($value, 2, '0', STR_PAD_LEFT) . '/' . $object->ano_referencia;
+            return "<span class='meta-value'><i class='fa fa-calendar'></i> {$mesAno}</span>";
         });
 
-        $col_data->setTransformer(function($value){
-            return TDate::convertToLocal($value, 'yyyy-mm-dd hh:ii');
+        $col_data->setTransformer(function($value) {
+            if ($value) {
+                $formatted = date('d/m/Y H:i', strtotime($value));
+                return "<span class='meta-value'><i class='fa fa-check'></i> {$formatted}</span>";
+            }
+            return '-';
         });
 
-        // Add columns
-        $this->datagrid->addColumn($col_id);
         $this->datagrid->addColumn($col_cliente);
-        $this->datagrid->addColumn($col_projeto);
         $this->datagrid->addColumn($col_mes);
         $this->datagrid->addColumn($col_data);
 
         // Actions
-        // 1. Download
         $action_download = new TDataGridAction([$this, 'onDownload'], ['key' => '{id}']);
-        $this->datagrid->addAction($action_download, 'Baixar Arquivo', 'fa:download green');
+        $this->datagrid->addAction($action_download, 'Baixar', 'fa:download green');
         
-        // 2. View Online
         $action_view = new TDataGridAction([$this, 'onViewPDF'], ['key' => '{id}']);
         $this->datagrid->addAction($action_view, 'Ver Online', 'fa:eye blue');
 
-        // Page Navigation
+        $this->datagrid->createModel();
+
+        // Pagination
         $this->pageNavigation = new TPageNavigation;
         $this->pageNavigation->setAction(new TAction([$this, 'onReload']));
 
-        $panel = new TPanelGroup;
-        $panel->add($this->form);
-        $panel->add($this->datagrid);
-        $panel->add($this->pageNavigation);
+        // Datagrid wrapper
+        $gridWrapper = new TElement('div');
+        $gridWrapper->class = 'datagrid-wrapper';
+        $gridWrapper->add($this->datagrid);
+        
+        $card->add($gridWrapper);
 
-        // Vbox
-        $vbox = new TVBox;
-        $vbox->style = 'width: 100%';
-        $vbox->add(new TXMLBreadCrumb('menu-gestor.xml', __CLASS__));
-        $vbox->add($panel);
+        // Pagination wrapper
+        $paginationWrapper = new TElement('div');
+        $paginationWrapper->class = 'pagination-wrapper';
+        $paginationWrapper->add($this->pageNavigation);
+        $card->add($paginationWrapper);
 
-        parent::add($vbox);
+        $html->add($card);
+
+        $container = new TVBox;
+        $container->style = 'width: 100%';
+        $container->add($html);
+
+        parent::add($container);
     }
     
-    /**
-     * Download Action
-     */
     public function onDownload($param)
     {
         try {
@@ -119,7 +190,7 @@ class HistoricoList extends TPage
                 $entrega = new Entrega($param['key']);
                 
                 if ($entrega->arquivo_consolidado && file_exists($entrega->arquivo_consolidado)) {
-                    parent::openFile($entrega->arquivo_consolidado); // Adianti helper for download
+                    parent::openFile($entrega->arquivo_consolidado);
                 } else {
                     new TMessage('error', 'Arquivo não encontrado.');
                 }
@@ -130,9 +201,6 @@ class HistoricoList extends TPage
         }
     }
     
-    /**
-     * View Online Action (Stream PDF)
-     */
     public function onViewPDF($param)
     {
         try {
@@ -142,22 +210,9 @@ class HistoricoList extends TPage
                 
                 if ($entrega->arquivo_consolidado && file_exists($entrega->arquivo_consolidado)) {
                     $file = $entrega->arquivo_consolidado;
-                    
-                    // We need to serve this file in a new window/tab as inline content
-                    // Since TPage runs inside the layout, we usually window.open to a download handler.
-                    // But for simplicity in Adianti, we can use a download script or just stream it if we kill the layout.
-                    // A trick is to use 'engine.php?class=HistoricoList&method=downloadInline&file=...' but security.
-                    // Better: script to open window.
-                    
                     $window_name = "view_pdf_{$entrega->id}";
                     $script = "window.open('download.php?file={$file}&inline=1', '{$window_name}');";
                     TScript::create($script);
-                    
-                    // Note: 'download.php' needs to exist or be created. 
-                    // Adianti usually has 'download.php' in root. If not, we use engine.php?class=SystemDocument&method=onView...
-                    // Let's rely on standard openFile for now for simplicity, but openFile triggers download.
-                    // Let's create a custom viewer method.
-                    
                 } else {
                     new TMessage('error', 'Arquivo não encontrado ou não consolidado.');
                 }
@@ -168,33 +223,13 @@ class HistoricoList extends TPage
         }
     }
     
-    // NOTE: For 'Ver Online' to work perfectly as streaming, we often need a separate handler.
-    // Adianti's parent::openFile usually forces download.
-    // I will implement a simplier version using TPage::openFile which handles temporary file serving.
-    // If specific streaming is needed, we'd create a specific PHP handler.
-    
-    /**
-     * Search triggers
-     */
     public function onSearch()
     {
         $data = $this->form->getData();
         TSession::setValue('HistoricoList_filter_data', $data);
-
-        $param = [];
-        if (!empty($data->cliente_id)) {
-            $param['cliente_id'] = $data->cliente_id;
-        }
-        if (!empty($data->projeto_id)) {
-            $param['projeto_id'] = $data->projeto_id;
-        }
-
-        $this->onReload($param);
+        $this->onReload();
     }
 
-    /**
-     * Clear filters
-     */
     public function onClear()
     {
         $this->form->clear();
@@ -202,31 +237,25 @@ class HistoricoList extends TPage
         $this->onReload();
     }
 
-    /**
-     * Reload datagrid
-     */
     public function onReload($param = NULL)
     {
         try {
             TTransaction::open('database');
             $repository = new TRepository('Entrega');
             
-            // Criteria: Approved AND Consolidated
             $criteria = new TCriteria;
             $criteria->add(new TFilter('status', '=', 'aprovado')); 
-            $criteria->add(new TFilter('consolidado', '=', '1')); // Only consolidated
+            $criteria->add(new TFilter('consolidado', '=', '1'));
             
-            // Check filters in session/param
             $data = TSession::getValue('HistoricoList_filter_data');
             
             if (!empty($data->cliente_id)) {
                 $criteria->add(new TFilter('cliente_id', '=', $data->cliente_id));
             }
             if (!empty($data->projeto_id)) {
-                 $criteria->add(new TFilter('projeto_id', '=', $data->projeto_id));
+                $criteria->add(new TFilter('projeto_id', '=', $data->projeto_id));
             }
 
-            // Ordering
             $order = isset($param['order']) ? $param['order'] : 'data_aprovacao';
             $direction = isset($param['direction']) ? $param['direction'] : 'desc';
             

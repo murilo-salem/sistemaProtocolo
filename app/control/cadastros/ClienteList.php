@@ -5,37 +5,116 @@ class ClienteList extends TPage
     protected $form;
     protected $datagrid;
     protected $pageNavigation;
+    private $activeFilter;
     
     public function __construct()
     {
         parent::__construct();
-
-        // AppSecurity::checkAccess('gestor');  // só gestores podem acessar
         
-        $this->form = new BootstrapFormBuilder('form_search_cliente');
-        $this->form->setFormTitle('Clientes');
+        // Get active filter from session
+        $this->activeFilter = TSession::getValue('ClienteList_quickfilter') ?? 'todos';
         
-        $nome = new TEntry('nome');
-        $email = new TEntry('email');
-        $ativo = new TCombo('ativo');
+        // Build the page HTML structure
+        $html = new TElement('div');
+        $html->class = 'list-page-container';
         
-        $ativo->addItems(['1' => 'Ativo', '0' => 'Inativo']);
+        // Page Header
+        $pageHeader = new TElement('div');
+        $pageHeader->class = 'list-page-header';
         
-        $this->form->addFields([new TLabel('Nome')], [$nome]);
-        $this->form->addFields([new TLabel('Email')], [$email]);
-        $this->form->addFields([new TLabel('Status')], [$ativo]);
+        $headerLeft = new TElement('div');
+        $headerLeft->class = 'header-left';
+        $headerLeft->add('<h1 class="page-title"><i class="fa fa-users"></i> Clientes</h1>');
         
-        $btn_search = $this->form->addAction('Buscar', new TAction([$this, 'onSearch']), 'fa:search');
-        $btn_new = $this->form->addAction('Novo', new TAction(['ClienteForm', 'onEdit']), 'fa:plus green');
+        $headerRight = new TElement('div');
+        $headerRight->class = 'header-right';
         
+        $btnNew = new TElement('a');
+        $btnNew->href = 'index.php?class=ClienteForm';
+        $btnNew->class = 'btn-add-new';
+        $btnNew->add('<i class="fa fa-plus"></i> Novo Cliente');
+        $headerRight->add($btnNew);
+        
+        $pageHeader->add($headerLeft);
+        $pageHeader->add($headerRight);
+        $html->add($pageHeader);
+        
+        // Main Card
+        $card = new TElement('div');
+        $card->class = 'list-card';
+        
+        // Quick Filter Tabs
+        $filterTabs = new TElement('div');
+        $filterTabs->class = 'quick-filter-tabs';
+        
+        $tabs = [
+            'todos' => ['label' => 'Todos', 'icon' => 'fa-list'],
+            'ativos' => ['label' => 'Ativos', 'icon' => 'fa-check-circle'],
+            'inativos' => ['label' => 'Inativos', 'icon' => 'fa-times-circle']
+        ];
+        
+        foreach ($tabs as $key => $tab) {
+            $tabLink = new TElement('a');
+            $tabLink->href = "javascript:__adianti_load_page('index.php?class=ClienteList&method=onQuickFilter&filter={$key}')";
+            $tabLink->class = 'filter-tab' . ($this->activeFilter === $key ? ' active' : '');
+            $tabLink->add("<i class=\"fa {$tab['icon']}\"></i> {$tab['label']}");
+            $filterTabs->add($tabLink);
+        }
+        
+        $card->add($filterTabs);
+        
+        // Search Bar
+        $searchBar = new TElement('div');
+        $searchBar->class = 'search-bar';
+        
+        $this->form = new TForm('form_search_cliente');
+        
+        $searchInput = new TEntry('nome');
+        $searchInput->setProperty('placeholder', 'Buscar cliente por nome ou email...');
+        $searchInput->setSize('100%');
+        
+        $searchWrapper = new TElement('div');
+        $searchWrapper->class = 'search-input-wrapper';
+        $searchIcon = new TElement('i');
+        $searchIcon->class = 'fa fa-search search-icon';
+        $searchWrapper->add($searchIcon);
+        $searchWrapper->add($searchInput);
+        
+        $btnSearch = new TButton('btn_search');
+        $btnSearch->setAction(new TAction([$this, 'onSearch']), 'Buscar');
+        $btnSearch->class = 'btn-search';
+        
+        $this->form->add($searchWrapper);
+        $this->form->add($btnSearch);
+        $this->form->setFields([$searchInput, $btnSearch]);
+        
+        $searchBar->add($this->form);
+        $card->add($searchBar);
+        
+        // DataGrid
         $this->datagrid = new BootstrapDatagridWrapper(new TDataGrid);
         $this->datagrid->width = '100%';
+        $this->datagrid->class = 'modern-datagrid';
         
-        $col_id = new TDataGridColumn('id', 'ID', 'center', 50);
-        $col_nome = new TDataGridColumn('nome', 'Nome', 'left');
-        $col_email = new TDataGridColumn('email', 'Email', 'left');
-        $col_login = new TDataGridColumn('login', 'Login', 'center');
-        $col_ativo = new TDataGridColumn('ativo', 'Status', 'center', 100);
+        $col_nome = new TDataGridColumn('nome', 'Cliente', 'left');
+        $col_email = new TDataGridColumn('email', 'E-mail', 'left');
+        $col_ativo = new TDataGridColumn('ativo', 'Status', 'center', 120);
+        
+        // Transformer for client name with avatar
+        $col_nome->setTransformer(function($value, $object) {
+            $initials = strtoupper(substr($value, 0, 2));
+            return "<div class='item-name'>
+                        <div class='item-avatar'>{$initials}</div>
+                        <div class='item-details'>
+                            <span class='item-title'>{$value}</span>
+                            <span class='item-meta'>Login: {$object->login}</span>
+                        </div>
+                    </div>";
+        });
+        
+        $col_email->setTransformer(function($value) {
+            return "<span class='meta-value'><i class='fa fa-envelope'></i> {$value}</span>";
+        });
         
         $col_ativo->setTransformer(function($value) {
             if ($value == 1) {
@@ -45,40 +124,57 @@ class ClienteList extends TPage
             }
         });
         
-        $this->datagrid->addColumn($col_id);
         $this->datagrid->addColumn($col_nome);
         $this->datagrid->addColumn($col_email);
-        $this->datagrid->addColumn($col_login);
         $this->datagrid->addColumn($col_ativo);
         
+        // Actions
         $action_edit = new TDataGridAction(['ClienteForm', 'onEdit'], ['id' => '{id}']);
         $action_delete = new TDataGridAction([$this, 'onDelete'], ['id' => '{id}']);
         
         $this->datagrid->addAction($action_edit, 'Editar', 'fa:edit blue');
-        $this->datagrid->addAction($action_delete, 'Excluir', 'fa:times red');
+        $this->datagrid->addAction($action_delete, 'Excluir', 'fa:trash red');
         
         $this->datagrid->createModel();
         
+        // Pagination
         $this->pageNavigation = new TPageNavigation;
         $this->pageNavigation->setAction(new TAction([$this, 'onReload']));
         
-        $panel = new TPanelGroup;
-        $panel->add($this->datagrid);
-        $panel->addFooter($this->pageNavigation);
+        // Datagrid wrapper
+        $gridWrapper = new TElement('div');
+        $gridWrapper->class = 'datagrid-wrapper';
+        $gridWrapper->add($this->datagrid);
+        
+        $card->add($gridWrapper);
+        
+        // Pagination wrapper
+        $paginationWrapper = new TElement('div');
+        $paginationWrapper->class = 'pagination-wrapper';
+        $paginationWrapper->add($this->pageNavigation);
+        $card->add($paginationWrapper);
+        
+        $html->add($card);
         
         $container = new TVBox;
         $container->style = 'width: 100%';
-        $container->add(new TXMLBreadCrumb('menu.xml', __CLASS__));
-        $container->add($this->form);
-        $container->add($panel);
+        $container->add($html);
         
         parent::add($container);
+    }
+    
+    public static function onQuickFilter($param)
+    {
+        TSession::setValue('ClienteList_quickfilter', $param['filter']);
+        TSession::setValue('ClienteList_filter', null);
+        TApplication::loadPage('ClienteList');
     }
     
     public function onSearch()
     {
         $data = $this->form->getData();
         TSession::setValue('ClienteList_filter', $data);
+        TSession::setValue('ClienteList_quickfilter', 'todos');
         $this->onReload();
     }
     
@@ -90,20 +186,24 @@ class ClienteList extends TPage
             $criteria = new TCriteria;
             $criteria->add(new TFilter('tipo', '=', 'cliente'));
             
+            // Apply quick filter
+            $quickFilter = TSession::getValue('ClienteList_quickfilter') ?? 'todos';
+            if ($quickFilter === 'ativos') {
+                $criteria->add(new TFilter('ativo', '=', 1));
+            } elseif ($quickFilter === 'inativos') {
+                $criteria->add(new TFilter('ativo', '=', 0));
+            }
+            
+            // Apply search filter
             if ($filter = TSession::getValue('ClienteList_filter')) {
-                if ($filter->nome) {
+                if (!empty($filter->nome)) {
                     $criteria->add(new TFilter('nome', 'like', "%{$filter->nome}%"));
-                }
-                if ($filter->email) {
-                    $criteria->add(new TFilter('email', 'like', "%{$filter->email}%"));
-                }
-                if ($filter->ativo !== '') {
-                    $criteria->add(new TFilter('ativo', '=', $filter->ativo));
                 }
             }
             
             $criteria->setProperty('limit', 10);
             $criteria->setProperty('offset', isset($param['offset']) ? $param['offset'] : 0);
+            $criteria->setProperty('order', 'nome');
             
             $clientes = Usuario::getObjects($criteria);
             
@@ -126,28 +226,28 @@ class ClienteList extends TPage
     
     public function onDelete($param)
     {
+        $action = new TAction([$this, 'Delete']);
+        $action->setParameters($param);
+        
+        new TQuestion('Deseja realmente excluir este cliente?', $action);
+    }
+    
+    public function Delete($param)
+    {
         try {
             TTransaction::open('database');
             
             $key = $param['id'];
             $cliente = new Usuario($key);
             
-            // Delete dependencies if needed (optional based on constraints)
             ClienteProjeto::where('cliente_id', '=', $key)->delete();
             
-            // Delete dependencies from 'mensagem' table to avoid FK violation
             TTransaction::get()->exec("DELETE FROM mensagem WHERE system_user_to_id = '{$key}'");
             TTransaction::get()->exec("DELETE FROM mensagem WHERE system_user_id = '{$key}'");
             
-            // Delete any entregas related to this client
             Entrega::where('cliente_id', '=', $key)->delete();
             
             $cliente->delete();
-            
-            // Verification Step
-            if (Usuario::find($key)) {
-                throw new Exception("Falha Crítica: O cliente não foi removido do banco de dados (Verificação Pós-Exclusão falhou).");
-            }
             
             TTransaction::close();
             

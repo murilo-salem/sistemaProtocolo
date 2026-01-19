@@ -5,36 +5,115 @@ class ProjetoList extends TPage
     protected $form;
     protected $datagrid;
     protected $pageNavigation;
+    private $activeFilter;
     
     public function __construct()
     {
         parent::__construct();
-
-        // AppSecurity::checkAccess('gestor');  // só gestores podem acessar
         
-        // Formulário de busca
-        $this->form = new BootstrapFormBuilder('form_search_projeto');
-        $this->form->setFormTitle('Projetos');
+        // Get active filter from session
+        $this->activeFilter = TSession::getValue('ProjetoList_quickfilter') ?? 'todos';
         
-        $nome = new TEntry('nome');
-        $ativo = new TCombo('ativo');
+        // Build the page HTML structure
+        $html = new TElement('div');
+        $html->class = 'list-page-container';
         
-        $ativo->addItems(['1' => 'Ativo', '0' => 'Inativo']);
+        // Page Header
+        $pageHeader = new TElement('div');
+        $pageHeader->class = 'list-page-header';
         
-        $this->form->addFields([new TLabel('Nome')], [$nome]);
-        $this->form->addFields([new TLabel('Status')], [$ativo]);
+        $headerLeft = new TElement('div');
+        $headerLeft->class = 'header-left';
+        $headerLeft->add('<h1 class="page-title"><i class="fa fa-briefcase"></i> Projetos</h1>');
         
-        $btn_search = $this->form->addAction('Buscar', new TAction([$this, 'onSearch']), 'fa:search');
-        $btn_new = $this->form->addAction('Novo', new TAction(['ProjetoForm', 'onEdit']), 'fa:plus green');
+        $headerRight = new TElement('div');
+        $headerRight->class = 'header-right';
+        
+        $btnNew = new TElement('a');
+        $btnNew->href = 'index.php?class=ProjetoForm';
+        $btnNew->class = 'btn-add-new';
+        $btnNew->add('<i class="fa fa-plus"></i> Novo Projeto');
+        $headerRight->add($btnNew);
+        
+        $pageHeader->add($headerLeft);
+        $pageHeader->add($headerRight);
+        $html->add($pageHeader);
+        
+        // Main Card
+        $card = new TElement('div');
+        $card->class = 'list-card';
+        
+        // Quick Filter Tabs
+        $filterTabs = new TElement('div');
+        $filterTabs->class = 'quick-filter-tabs';
+        
+        $tabs = [
+            'todos' => ['label' => 'Todos', 'icon' => 'fa-list'],
+            'ativos' => ['label' => 'Ativos', 'icon' => 'fa-check-circle'],
+            'inativos' => ['label' => 'Inativos', 'icon' => 'fa-times-circle']
+        ];
+        
+        foreach ($tabs as $key => $tab) {
+            $tabLink = new TElement('a');
+            $tabLink->href = "javascript:__adianti_load_page('index.php?class=ProjetoList&method=onQuickFilter&filter={$key}')";
+            $tabLink->class = 'filter-tab' . ($this->activeFilter === $key ? ' active' : '');
+            $tabLink->add("<i class=\"fa {$tab['icon']}\"></i> {$tab['label']}");
+            $filterTabs->add($tabLink);
+        }
+        
+        $card->add($filterTabs);
+        
+        // Search Bar
+        $searchBar = new TElement('div');
+        $searchBar->class = 'search-bar';
+        
+        $this->form = new TForm('form_search_projeto');
+        
+        $searchInput = new TEntry('nome');
+        $searchInput->setProperty('placeholder', 'Buscar projeto por nome...');
+        $searchInput->setSize('100%');
+        
+        $searchWrapper = new TElement('div');
+        $searchWrapper->class = 'search-input-wrapper';
+        $searchIcon = new TElement('i');
+        $searchIcon->class = 'fa fa-search search-icon';
+        $searchWrapper->add($searchIcon);
+        $searchWrapper->add($searchInput);
+        
+        $btnSearch = new TButton('btn_search');
+        $btnSearch->setAction(new TAction([$this, 'onSearch']), 'Buscar');
+        $btnSearch->class = 'btn-search';
+        
+        $this->form->add($searchWrapper);
+        $this->form->add($btnSearch);
+        $this->form->setFields([$searchInput, $btnSearch]);
+        
+        $searchBar->add($this->form);
+        $card->add($searchBar);
         
         // DataGrid
         $this->datagrid = new BootstrapDatagridWrapper(new TDataGrid);
         $this->datagrid->width = '100%';
+        $this->datagrid->class = 'modern-datagrid';
         
-        $col_id = new TDataGridColumn('id', 'ID', 'center', 50);
-        $col_nome = new TDataGridColumn('nome', 'Nome', 'left');
-        $col_dia = new TDataGridColumn('dia_vencimento', 'Dia Venc.', 'center', 100);
-        $col_ativo = new TDataGridColumn('ativo', 'Status', 'center', 100);
+        $col_nome = new TDataGridColumn('nome', 'Projeto', 'left');
+        $col_dia = new TDataGridColumn('dia_vencimento', 'Vencimento', 'center', 120);
+        $col_ativo = new TDataGridColumn('ativo', 'Status', 'center', 120);
+        
+        // Transformer for project name with icon
+        $col_nome->setTransformer(function($value, $object) {
+            return "<div class='item-name'>
+                        <div class='item-icon'><i class='fa fa-folder'></i></div>
+                        <div class='item-details'>
+                            <span class='item-title'>{$value}</span>
+                            <span class='item-meta'>ID: {$object->id}</span>
+                        </div>
+                    </div>";
+        });
+        
+        $col_dia->setTransformer(function($value) {
+            return "<span class='meta-value'><i class='fa fa-calendar'></i> Dia {$value}</span>";
+        });
         
         $col_ativo->setTransformer(function($value) {
             if ($value == 1) {
@@ -44,11 +123,11 @@ class ProjetoList extends TPage
             }
         });
         
-        $this->datagrid->addColumn($col_id);
         $this->datagrid->addColumn($col_nome);
         $this->datagrid->addColumn($col_dia);
         $this->datagrid->addColumn($col_ativo);
         
+        // Actions
         $action_edit = new TDataGridAction(['ProjetoForm', 'onEdit'], ['id' => '{id}']);
         $action_delete = new TDataGridAction([$this, 'onDelete'], ['id' => '{id}']);
         
@@ -57,27 +136,44 @@ class ProjetoList extends TPage
         
         $this->datagrid->createModel();
         
-        // Paginação
+        // Pagination
         $this->pageNavigation = new TPageNavigation;
         $this->pageNavigation->setAction(new TAction([$this, 'onReload']));
         
-        $panel = new TPanelGroup;
-        $panel->add($this->datagrid);
-        $panel->addFooter($this->pageNavigation);
+        // Datagrid wrapper
+        $gridWrapper = new TElement('div');
+        $gridWrapper->class = 'datagrid-wrapper';
+        $gridWrapper->add($this->datagrid);
+        
+        $card->add($gridWrapper);
+        
+        // Pagination wrapper
+        $paginationWrapper = new TElement('div');
+        $paginationWrapper->class = 'pagination-wrapper';
+        $paginationWrapper->add($this->pageNavigation);
+        $card->add($paginationWrapper);
+        
+        $html->add($card);
         
         $container = new TVBox;
         $container->style = 'width: 100%';
-        $container->add(new TXMLBreadCrumb('menu.xml', __CLASS__));
-        $container->add($this->form);
-        $container->add($panel);
+        $container->add($html);
         
         parent::add($container);
+    }
+    
+    public static function onQuickFilter($param)
+    {
+        TSession::setValue('ProjetoList_quickfilter', $param['filter']);
+        TSession::setValue('ProjetoList_filter', null);
+        TApplication::loadPage('ProjetoList');
     }
     
     public function onSearch()
     {
         $data = $this->form->getData();
         TSession::setValue('ProjetoList_filter', $data);
+        TSession::setValue('ProjetoList_quickfilter', 'todos');
         $this->onReload();
     }
     
@@ -88,17 +184,24 @@ class ProjetoList extends TPage
             
             $criteria = new TCriteria;
             
+            // Apply quick filter
+            $quickFilter = TSession::getValue('ProjetoList_quickfilter') ?? 'todos';
+            if ($quickFilter === 'ativos') {
+                $criteria->add(new TFilter('ativo', '=', 1));
+            } elseif ($quickFilter === 'inativos') {
+                $criteria->add(new TFilter('ativo', '=', 0));
+            }
+            
+            // Apply search filter
             if ($filter = TSession::getValue('ProjetoList_filter')) {
-                if ($filter->nome) {
+                if (!empty($filter->nome)) {
                     $criteria->add(new TFilter('nome', 'like', "%{$filter->nome}%"));
-                }
-                if ($filter->ativo !== '') {
-                    $criteria->add(new TFilter('ativo', '=', $filter->ativo));
                 }
             }
             
             $criteria->setProperty('limit', 10);
             $criteria->setProperty('offset', isset($param['offset']) ? $param['offset'] : 0);
+            $criteria->setProperty('order', 'nome');
             
             $projetos = Projeto::getObjects($criteria);
             
@@ -134,10 +237,8 @@ class ProjetoList extends TPage
             
             $key = $param['id'];
             
-            // Delete child documents first (cascade)
             ProjetoDocumento::where('projeto_id', '=', $key)->delete();
             
-            // Now delete the project
             $projeto = new Projeto($key);
             $projeto->delete();
             
