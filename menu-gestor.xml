@@ -25,7 +25,11 @@
             </menuitem>
             <menuitem label="Empresas">
                 <icon>fa-building</icon>
-                <action>CompanyTemplateList</action>
+                <action>EmpresaList</action>
+            </menuitem>
+            <menuitem label="Nova Empresa">
+                <icon>fa-plus</icon>
+                <action>EmpresaForm</action>
             </menuitem>
         </menu>
     </menuitem>

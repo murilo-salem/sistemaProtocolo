@@ -39,11 +39,16 @@ class ClienteForm extends TPage
         $senha->setSize('100%');
         $senha->setEditable(FALSE);
         
-        $projetos = new TDBCombo('projetos', 'database', 'Projeto', 'id', 'nome');
-        $projetos->setDefaultOption('Selecione um projeto...');
+        // Company dropdown for filtering projects
+        $empresa_id = new TDBCombo('empresa_id', 'database', 'CompanyTemplate', 'id', 'name');
+        $empresa_id->setDefaultOption('Selecione uma empresa (opcional)...');
+        $empresa_id->setSize('100%');
+        $empresa_id->setChangeAction(new TAction([$this, 'onChangeEmpresa']));
+        
+        $projetos = new TCombo('projetos');
+        $projetos->setDefaultOption('Selecione uma empresa primeiro...');
         $projetos->enableSearch();
         $projetos->setSize('100%');
-        $projetos->addValidation('Projeto', new TRequiredValidator);
         
         $ativo = new TRadioGroup('ativo');
         $ativo->setUseButton();
@@ -150,13 +155,29 @@ class ClienteForm extends TPage
         $senhaGroup->add($senha);
         $step2Fields->add($senhaGroup);
         
+        // Company field group
+        $empresaGroup = new TElement('div');
+        $empresaGroup->class = 'field-group';
+        $empresaLabel = new TElement('label');
+        $empresaLabel->add('Empresa (Opcional)');
+        $empresaGroup->add($empresaLabel);
+        $empresaGroup->add($empresa_id);
+        $step2Fields->add($empresaGroup);
+        
         // Project field group
         $projetoGroup = new TElement('div');
         $projetoGroup->class = 'field-group';
         $projetoLabel = new TElement('label');
-        $projetoLabel->add('Projeto Vinculado *');
+        $projetoLabel->add('Projeto Vinculado (Opcional)');
         $projetoGroup->add($projetoLabel);
         $projetoGroup->add($projetos);
+        
+        // Info about filtering
+        $projetoInfo = new TElement('div');
+        $projetoInfo->class = 'info-box';
+        $projetoInfo->add('<i class="fa fa-info-circle"></i> Selecione uma empresa para filtrar os projetos disponíveis.');
+        $projetoGroup->add($projetoInfo);
+        
         $step2Fields->add($projetoGroup);
         
         // Status field group
@@ -216,7 +237,7 @@ class ClienteForm extends TPage
         $this->form->add($html);
         
         // Register form fields
-        $this->form->setFields([$id, $current_step, $nome, $email, $login, $senha, $projetos, $ativo, $btnSave]);
+        $this->form->setFields([$id, $current_step, $nome, $email, $login, $senha, $empresa_id, $projetos, $ativo, $btnSave]);
         
         // Wizard JavaScript
         $script = new TElement('script');
@@ -277,6 +298,37 @@ class ClienteForm extends TPage
         parent::add($container);
     }
     
+    public static function onChangeEmpresa($param)
+    {
+        if (!empty($param['empresa_id'])) {
+            try {
+                TTransaction::open('database');
+                
+                // Load projects from selected company
+                $projetos = Projeto::where('company_template_id', '=', $param['empresa_id'])
+                                   ->where('ativo', '=', 1)
+                                   ->load();
+                
+                $options = [];
+                if ($projetos) {
+                    foreach ($projetos as $projeto) {
+                        $options[$projeto->id] = $projeto->nome;
+                    }
+                }
+                
+                // Reload the combo
+                TCombo::reload('form_cliente', 'projetos', $options);
+                
+                TTransaction::close();
+            } catch (Exception $e) {
+                new TMessage('error', $e->getMessage());
+            }
+        } else {
+            // Clear project combo if no company selected
+            TCombo::reload('form_cliente', 'projetos', []);
+        }
+    }
+    
     public function onEdit($param)
     {
         try {
@@ -289,6 +341,12 @@ class ClienteForm extends TPage
                 // Load linked project
                 $vinculado = ClienteProjeto::where('cliente_id', '=', $usuario->id)->first();
                 $data['projetos'] = $vinculado ? $vinculado->projeto_id : null;
+                
+                // Load empresa from project if exists
+                if ($vinculado && $vinculado->projeto_id) {
+                    $projeto = new Projeto($vinculado->projeto_id);
+                    $data['empresa_id'] = $projeto->company_template_id;
+                }
                 
                 // Convert ativo to string for radio
                 $data['ativo'] = $usuario->ativo ? '1' : '0';
