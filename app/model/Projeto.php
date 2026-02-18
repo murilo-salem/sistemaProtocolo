@@ -15,6 +15,7 @@ class Projeto extends TRecord
         parent::addAttribute('dia_vencimento');
         parent::addAttribute('ativo');
         parent::addAttribute('company_template_id');
+        parent::addAttribute('is_template');
         parent::addAttribute('created_at');
         parent::addAttribute('updated_at');
     }

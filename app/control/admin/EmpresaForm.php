@@ -23,24 +23,28 @@ class EmpresaForm extends TPage
         $nome->setSize('100%');
         $nome->addValidation('Nome', new TRequiredValidator);
         
-        // Step 2: Document List
-        $this->documentos_list = new TFieldList;
-        $this->documentos_list->generateAria();
-        $this->documentos_list->width = '100%';
-        $this->documentos_list->enableSorting();
-
-        $doc_nome = new TEntry('document_name[]');
-        $doc_nome->setProperty('placeholder', 'Nome do documento');
-        $doc_nome->setSize('100%');
+        // Step 2: Project Templates
+        $this->documentos_list = new TDataGrid;
+        $this->documentos_list->style = 'width: 100%; margin-bottom: 20px';
         
-        $this->documentos_list->addField('Documento Obrigatório', $doc_nome, ['width' => '100%']);
-        $this->documentos_list->addHeader();
+        $col_id = new TDataGridColumn('id', 'ID', 'center', '50px');
+        $col_nome = new TDataGridColumn('nome', 'Nome do Modelo', 'left');
+        $col_docs_count = new TDataGridColumn('total_docs', 'Qtd', 'center', '50px');
+        $col_docs_summary = new TDataGridColumn('docs_summary', 'Lista de Documentos', 'left');
         
-        // Only add initial row for new records
-        if (empty($_GET['id'])) {
-            $this->documentos_list->addDetail(new stdClass);
-            $this->documentos_list->addCloneAction();
-        }
+        $this->documentos_list->addColumn($col_id);
+        $this->documentos_list->addColumn($col_nome);
+        $this->documentos_list->addColumn($col_docs_count);
+        $this->documentos_list->addColumn($col_docs_summary);
+        
+        // Actions
+        $action_edit = new TDataGridAction(['ProjetoForm', 'onEdit']);
+        $action_edit->setLabel('Editar Modelo');
+        $action_edit->setImage('fa:edit blue');
+        $action_edit->setField('id');
+        $this->documentos_list->addAction($action_edit);
+        
+        $this->documentos_list->createModel();
         
         // Build wizard HTML structure
         $html = new TElement('div');
@@ -60,7 +64,7 @@ class EmpresaForm extends TPage
             <div class="step-line"></div>
             <div class="step" data-step="2">
                 <div class="step-number">2</div>
-                <div class="step-label">Documentos Padrão</div>
+                <div class="step-label">Modelos de Projetos</div>
             </div>
         ');
         $header->add($stepper);
@@ -113,19 +117,35 @@ class EmpresaForm extends TPage
         
         $step2Title = new TElement('div');
         $step2Title->class = 'step-title';
-        $step2Title->add('<h2>Documentos Padrão</h2><p>Defina os documentos obrigatórios para projetos desta empresa</p>');
+        $step2Title->add('<h2>Modelos de Projetos</h2><p>Gerencie os modelos de projetos vinculados a esta empresa</p>');
         $step2->add($step2Title);
         
         $step2Fields = new TElement('div');
         $step2Fields->class = 'wizard-fields';
         
-        $docGroup = new TElement('div');
-        $docGroup->class = 'field-group';
-        $docLabel = new TElement('label');
-        $docLabel->add('Lista de Documentos Obrigatórios');
-        $docGroup->add($docLabel);
-        $docGroup->add($this->documentos_list);
-        $step2Fields->add($docGroup);
+        // Info Box
+        $infoBox = new TElement('div');
+        $infoBox->class = 'info-box';
+        $infoBox->add('<i class="fa fa-info-circle"></i> Aqui você define os tipos de projetos (Modelos) que esta empresa oferece. Cada modelo terá sua própria lista de documentos.');
+        $step2Fields->add($infoBox);
+        
+        // Add Button (Only visible if saved)
+        $addBtn = new TElement('a');
+        $addBtn->class = 'btn btn-primary';
+        $addBtn->style = 'display:none; margin-bottom: 15px;';
+        $addBtn->id = 'btn-add-template';
+        $addBtn->href = '#';
+        $addBtn->add('<i class="fa fa-plus"></i> Novo Modelo');
+        $step2Fields->add($addBtn);
+        
+        $msgSave = new TElement('div');
+        $msgSave->id = 'msg-save-first';
+        $msgSave->style = 'padding: 20px; text-align: center; color: #666; background: #f9fafb; border-radius: 8px; border: 1px dashed #ccc;';
+        $msgSave->add('Salve a empresa primeiro para adicionar modelos.');
+        $step2Fields->add($msgSave);
+        
+        // List
+        $step2Fields->add($this->documentos_list);
         
         $step2->add($step2Fields);
         $body->add($step2);
@@ -242,20 +262,42 @@ class EmpresaForm extends TPage
                 $empresa = new CompanyTemplate($param['id']);
                 $data = $empresa->toArray();
                 
-                // Load documents
-                $items = CompanyDocTemplate::where('company_template_id', '=', $empresa->id)->load();
+                // Load Project Templates
+                $templates = Projeto::where('company_template_id', '=', $empresa->id)
+                                    ->where('is_template', '=', '1')
+                                    ->load();
                 
-                if ($items) {
-                    foreach ($items as $item_obj) {
+                // Add items to DataGrid
+                $this->documentos_list->clear();
+                if ($templates) {
+                    foreach ($templates as $template) {
                         $item = new stdClass;
-                        $item->document_name = $item_obj->document_name;
-                        $this->documentos_list->addDetail($item);
+                        $item->id = $template->id;
+                        $item->nome = $template->nome;
+                        
+                        // Count docs
+                        $docs = ProjetoDocumento::where('projeto_id', '=', $template->id)->load();
+                        $item->total_docs = count($docs);
+                        
+                        // Summary of docs
+                        $doc_names = [];
+                        if ($docs) {
+                            foreach ($docs as $doc) {
+                                $doc_names[] = $doc->nome_documento;
+                            }
+                        }
+                        $item->docs_summary = implode(', ', $doc_names);
+                        
+                        $this->documentos_list->addItem($item);
                     }
-                } else {
-                    $this->documentos_list->addDetail(new stdClass);
                 }
                 
-                $this->documentos_list->addCloneAction();
+                // Setup "Add Template" button
+                TScript::create("
+                    document.getElementById('btn-add-template').style.display = 'inline-block';
+                    document.getElementById('btn-add-template').href = 'index.php?class=ProjetoForm&company_template_id={$empresa->id}&is_template=1';
+                    document.getElementById('msg-save-first').style.display = 'none';
+                ");
                 
                 $this->form->setData((object) $data);
                 
@@ -275,33 +317,15 @@ class EmpresaForm extends TPage
             $empresa->fromArray((array) $param);
             $empresa->store();
             
-            // Clear old documents
-            CompanyDocTemplate::where('company_template_id', '=', $empresa->id)->delete();
+            // We NO LONGER save CompanyDocTemplate here.
+            // Templates are managed in their own form.
             
-            // Normalize document_name to array
-            $doc_names = [];
-            if (isset($param['document_name'])) {
-                if (is_array($param['document_name'])) {
-                    $doc_names = $param['document_name'];
-                } else {
-                    $doc_names = [$param['document_name']];
-                }
-            }
-            
-            // Insert new documents
-            foreach ($doc_names as $doc_name) {
-                if (!empty(trim($doc_name))) {
-                    $detail = new CompanyDocTemplate;
-                    $detail->company_template_id = $empresa->id;
-                    $detail->document_name = trim($doc_name);
-                    $detail->store();
-                }
-            }
-
             TTransaction::close();
 
-            new TMessage('info', 'Empresa salva com sucesso!');
-            TApplication::gotoPage('EmpresaList');
+            new TMessage('info', 'Empresa salva com sucesso! Agora você pode adicionar Modelos de Projeto na aba seguinte.');
+            
+            // Reload to show "Add Template" button
+            TApplication::loadPage('EmpresaForm', 'onEdit', ['id' => $empresa->id]);
 
         } catch (Exception $e) {
             new TMessage('error', $e->getMessage());

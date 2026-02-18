@@ -42,4 +42,34 @@ class Entrega extends TRecord
     {
         $this->documentos_json = json_encode($array, JSON_UNESCAPED_UNICODE);
     }
+    
+    /**
+     * Verifica se a entrega já foi consolidada
+     * @return bool
+     */
+    public function isConsolidado()
+    {
+        return !empty($this->consolidado) && $this->consolidado == 1;
+    }
+    
+    /**
+     * Verifica se a entrega pode ser consolidada
+     * @return bool
+     */
+    public function podeConsolidar()
+    {
+        return $this->status == 'aprovado' && !$this->isConsolidado();
+    }
+    
+    /**
+     * Retorna o caminho do arquivo consolidado se existir
+     * @return string|null
+     */
+    public function getArquivoConsolidado()
+    {
+        if ($this->isConsolidado() && file_exists($this->arquivo_consolidado)) {
+            return $this->arquivo_consolidado;
+        }
+        return null;
+    }
 }

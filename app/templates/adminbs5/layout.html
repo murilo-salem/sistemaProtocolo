@@ -1,35 +1,36 @@
 <!DOCTYPE html>
 <html class="notranslate" translate="no" data-bs-theme="light" data-menu-theme="dark">
+
 <head>
     <title>{title}</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link rel="manifest" href="manifest.json?appver=830">
-    <link rel="shortcut icon" type="image/png" href="favicon.png"/>
+    <link rel="shortcut icon" type="image/png" href="favicon.png" />
     <!-- Tell the browser to be responsive to screen width -->
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
     <link rel="apple-touch-icon" sizes="180x180" href="app/images/icon.png">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    
+
     {LIBRARIES}
     {HEAD}
-    
+
     <script src="app/lib/include/admin.js?appver=830" type="text/javascript"></script>
     <link href="app/lib/include/admin.css?appver=830" rel="stylesheet" type="text/css" media="screen">
-    
+
     <script src="app/templates/{template}/js/theme.js?appver=830"></script>
     <link rel="stylesheet" href="app/templates/{template}/theme.css?appver=830">
     <link rel="stylesheet" href="app/templates/{template}/custom.css?appver={buildid}">
-    
+
     <script>
-        $(function() {
+        $(function () {
             // Start framework.
-            Adianti.configure({adianti_options});
+            Adianti.configure({ adianti_options });
             Adianti.start();
-            
+
             // Start template.
-            Template.configure({template_options});
+            Template.configure({ template_options });
             Template.start();
         });
     </script>
@@ -37,7 +38,7 @@
 
 <body>
     <div class="wrapper">
-        
+
         <!--[SIDEBAR]-->
         <aside id="sidebar" class="js-sidebar thin-scroll">
             <div class="h-100" id="menu-wrapper">
@@ -49,22 +50,24 @@
                         {title}
                     </span>
                 </span>
-                
+
                 <span class="sidebar-menu-title">
                     <span class="name">MENU</span>
-                    <div id="has_menu_mode_switch" class="form-check form-switch" title="_t{Dark mode}" style="display: inline;position: absolute;right: 0;margin-right: 15px; display:none">
-                        <input class="form-check-input" type="checkbox" role="switch" id="menu_theme_switch" checked="" style="cursor:pointer" onclick="Template.toggleMenuTheme(this)">
+                    <div id="has_menu_mode_switch" class="form-check form-switch" title="_t{Dark mode}"
+                        style="display: inline;position: absolute;right: 0;margin-right: 15px; display:none">
+                        <input class="form-check-input" type="checkbox" role="switch" id="menu_theme_switch" checked=""
+                            style="cursor:pointer" onclick="Template.toggleMenuTheme(this)">
                         <i class="fa-solid fa-circle-half-stroke"></i>
                     </div>
                 </span>
-                
+
                 <div id="search-box" style="margin-left:15px"></div>
                 {MENU}
-                
+
             </div>
         </aside>
         <!--[/SIDEBAR]-->
-        
+
         <div class="main">
             <nav class="navbar navbar-expand px-3 border-bottom">
                 <button class="btn superlight" id="sidebar-toggle" type="button">
@@ -75,31 +78,110 @@
                         {MENUTOP}
                     </div>
                     <ul id="navbar-wrapper" class="navbar-nav" style="margin-right:10px">
+                        <li class="nav-item dropdown" style="margin-right: 5px;">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownChat" role="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-regular fa-comments"></i>
+                                <span class="badge bg-danger" id="chat-badge"
+                                    style="display:none; position: absolute; top: 0; right: 0; font-size: 0.6em;">0</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownChat"
+                                id="chat-dropdown-menu" style="min-width: 300px; max-height: 400px; overflow-y: auto;">
+                                <li><span class="dropdown-item text-muted text-center"><i
+                                            class="fa fa-spinner fa-spin"></i> Carregando...</span></li>
+                            </ul>
+                        </li>
+                        <script>
+                            function checkChatMessages() {
+                                $.get('engine.php?class=SystemChat&method=onGetUnreadCount', function (data) {
+                                    try {
+                                        var response = JSON.parse(data);
+                                        if (response.count > 0) {
+                                            $('#chat-badge').text(response.count).show();
+                                        } else {
+                                            $('#chat-badge').hide();
+                                        }
+                                    } catch (e) { }
+                                });
+                            }
+                            // Check every 10 seconds
+                            setInterval(checkChatMessages, 10000);
+                            // Check on load
+                            $(function () { checkChatMessages(); });
+                        </script>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownNotifications" role="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-bell"></i>
+                                <span class="badge bg-danger" id="notification-badge"
+                                    style="display:none; position: absolute; top: 0; right: 0; font-size: 0.6em;">0</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownNotifications"
+                                id="notification-dropdown-menu"
+                                style="min-width: 300px; max-height: 400px; overflow-y: auto;">
+                                <li><span class="dropdown-item text-muted text-center"><i
+                                            class="fa fa-spinner fa-spin"></i> Carregando...</span></li>
+                            </ul>
+                        </li>
+                        <script>
+                            function checkNotifications() {
+                                $.get('engine.php?class=NotificationList&method=getUnreadCount', function (data) {
+                                    try {
+                                        var response = JSON.parse(data);
+                                        if (response.count > 0) {
+                                            $('#notification-badge').text(response.count).show();
+                                        } else {
+                                            $('#notification-badge').hide();
+                                        }
+                                    } catch (e) { }
+                                });
+                            }
+                            // Check every 15 seconds
+                            setInterval(checkNotifications, 15000);
+                            // Check on load
+                            $(function () {
+                                checkNotifications();
+
+                                // Bind Dropdown Events
+                                $('#navbarDropdownChat').parent().on('show.bs.dropdown', function () {
+                                    $.get('engine.php?class=SystemChat&method=getLatestMessages', function (data) {
+                                        $('#chat-dropdown-menu').html(data);
+                                    });
+                                });
+
+                                $('#navbarDropdownNotifications').parent().on('show.bs.dropdown', function () {
+                                    $.get('engine.php?class=NotificationDropdown&method=getLatest', function (data) {
+                                        $('#notification-dropdown-menu').html(data);
+                                    });
+                                });
+                            });
+                        </script>
                     </ul>
                 </div>
             </nav>
-            
+
             <ul id="adianti_tab_area" class="nav nav-underline" style="display:none">
-              <li class="nav-item">
-                <a class="nav-link active" aria-current="page" onclick="Template.goFirstPageTab()"> <i class="fa-solid fa-house"></i> <span>Home</span></a>
-              </li>
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" onclick="Template.goFirstPageTab()"> <i
+                            class="fa-solid fa-house"></i> <span>Home</span></a>
+                </li>
             </ul>
-            
+
             <main id="adianti_div_content_wrapper" class="content px-3 py-2">
                 <div class="container-fluid" style="padding-right:0">
                     <div id="adianti_div_content"></div>
                 </div>
-                
+
                 <div id="adianti_right_panel" class="right-panel"></div>
                 <div id="adianti_online_content"></div>
             </main>
-            
+
             <main id="adianti_tab_content_wrapper">
                 <div class="container-fluid" style="padding-right:0">
                     <div id="adianti_tab_content"></div>
                 </div>
             </main>
-            
+
             <footer class="footer">
                 <div class="container-fluid">
                     <div class="row text-muted">
@@ -107,29 +189,33 @@
                             <div style="text-align:right;float:left">
                                 {MENUBOTTOM}
                             </div>
-                            <div id="has_main_mode_switch" class="form-check form-switch" title="_t{Dark mode}" style="display: block;margin-left: 10px;float: right;padding-top:5px;">
-                                <input class="form-check-input" type="checkbox" role="switch" id="global_theme_switch" checked="" style="cursor:pointer" onclick="Template.toggleGlobalTheme(this)">
+                            <div id="has_main_mode_switch" class="form-check form-switch" title="_t{Dark mode}"
+                                style="display: block;margin-left: 10px;float: right;padding-top:5px;">
+                                <input class="form-check-input" type="checkbox" role="switch" id="global_theme_switch"
+                                    checked="" style="cursor:pointer" onclick="Template.toggleGlobalTheme(this)">
                                 <i class="fa-solid fa-circle-half-stroke"></i>
                             </div>
-                            
-                            
+
+
                         </div>
                     </div>
                 </div>
             </footer>
-            
-            <div class="offcanvas offcanvas-bottom debug-panel" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1" id="debug-panel" aria-labelledby="offcanvasScrollingLabel">
-              <div class="offcanvas-header">
-                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-              </div>
-              <div class="offcanvas-body">
-                  <span class="debug-title"> Request URL </span>
-                  <span class="debug-title"> Request Data </span>
-                  <div class="debug-block" id="request_url_panel"> </div>
-                  <div class="debug-block" id="request_data_panel"> </div>
-              </div>
+
+            <div class="offcanvas offcanvas-bottom debug-panel" data-bs-scroll="true" data-bs-backdrop="false"
+                tabindex="-1" id="debug-panel" aria-labelledby="offcanvasScrollingLabel">
+                <div class="offcanvas-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <span class="debug-title"> Request URL </span>
+                    <span class="debug-title"> Request Data </span>
+                    <div class="debug-block" id="request_url_panel"> </div>
+                    <div class="debug-block" id="request_data_panel"> </div>
+                </div>
             </div>
         </div>
     </div>
 </body>
+
 </html>

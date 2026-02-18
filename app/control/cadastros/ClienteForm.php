@@ -46,8 +46,23 @@ class ClienteForm extends TPage
         $empresa_id->setChangeAction(new TAction([$this, 'onChangeEmpresa']));
         
         $projetos = new TCombo('projetos');
-        $projetos->setDefaultOption('Selecione uma empresa primeiro...');
+        $projetos->setDefaultOption('Selecione uma opção...');
         $projetos->enableSearch();
+        
+        // Load Global Templates (no company) by default
+        TTransaction::open('database');
+        $global_templates = Projeto::where('is_template', '=', '1')
+                                   ->where('ativo', '=', 1)
+                                   ->where('company_template_id', 'IS', NULL)
+                                   ->load();
+        $opts = [];
+        if ($global_templates) {
+            foreach ($global_templates as $gt) {
+                $opts[$gt->id] = $gt->nome . ' (Geral)';
+            }
+        }
+        $projetos->addItems($opts);
+        TTransaction::close();
         $projetos->setSize('100%');
         
         $ativo = new TRadioGroup('ativo');
@@ -291,7 +306,11 @@ class ClienteForm extends TPage
         
         $container = new TVBox;
         $container->style = 'width: 100%';
-        $container->add(new TXMLBreadCrumb('menu.xml', __CLASS__));
+        try {
+            $container->add(new TXMLBreadCrumb('menu.xml', __CLASS__));
+        } catch (Exception $e) {
+            // ignore if not in menu
+        }
         $container->add($this->form);
         $container->add($script);
         
@@ -304,9 +323,10 @@ class ClienteForm extends TPage
             try {
                 TTransaction::open('database');
                 
-                // Load projects from selected company
+                // Load PROJECT TEMPLATES from selected company
                 $projetos = Projeto::where('company_template_id', '=', $param['empresa_id'])
                                    ->where('ativo', '=', 1)
+                                   ->where('is_template', '=', '1') // Only Templates
                                    ->load();
                 
                 $options = [];
@@ -324,8 +344,25 @@ class ClienteForm extends TPage
                 new TMessage('error', $e->getMessage());
             }
         } else {
-            // Clear project combo if no company selected
-            TCombo::reload('form_cliente', 'projetos', []);
+            // If no company selected, load GLOBAL templates (no company)
+            try {
+                TTransaction::open('database');
+                $projetos = Projeto::where('company_template_id', 'IS', NULL)
+                                   ->where('ativo', '=', 1)
+                                   ->where('is_template', '=', '1')
+                                   ->load();
+                
+                $options = [];
+                if ($projetos) {
+                    foreach ($projetos as $projeto) {
+                        $options[$projeto->id] = $projeto->nome . ' (Geral)';
+                    }
+                }
+                TCombo::reload('form_cliente', 'projetos', $options);
+                TTransaction::close();
+            } catch (Exception $e) {
+                new TMessage('error', $e->getMessage());
+            }
         }
     }
     
@@ -338,9 +375,19 @@ class ClienteForm extends TPage
                 $usuario = new Usuario($param['id']);
                 $data = $usuario->toArray();
                 
-                // Load linked project
+                // Load linked project (INSTANCE)
                 $vinculado = ClienteProjeto::where('cliente_id', '=', $usuario->id)->first();
-                $data['projetos'] = $vinculado ? $vinculado->projeto_id : null;
+                
+                if ($vinculado) {
+                    // We need to show the TEMPLATE that originated this instance, if possible.
+                    // But we don't store "origin_template_id" on Projeto instance (we could, but currently we don't).
+                    // So we can only show the INSTANCE name or just leave it blank if editing?
+                    // "projetos" field is essentially "Template to Apply".
+                    // If already applied, maybe we shouldn't show it selected?
+                    // Or we show the instance? 
+                    // Let's assume for now we don't re-select the template on Edit to avoid re-cloning.
+                    //$data['projetos'] = $vinculado->projeto_id; 
+                }
                 
                 // Load empresa from project if exists
                 if ($vinculado && $vinculado->projeto_id) {
@@ -394,16 +441,48 @@ class ClienteForm extends TPage
             $usuario->ativo = (!empty($param['ativo']) && $param['ativo'] !== '0') ? 1 : 0;
             $usuario->store();
             
-            // Remove old links
-            ClienteProjeto::where('cliente_id', '=', $usuario->id)->delete();
-            
-            // Add new link
-            if (!empty($param['projetos'])) {
+            // Check if user selected a Template to Clone
+            $hasLink = false;
+            if (!empty($usuario->id)) {
+                $hasLink = ClienteProjeto::where('cliente_id', '=', $usuario->id)->count() > 0;
+            }
+
+            // Allow assignment if project selected AND (user is new OR user has no project yet)
+            if (!empty($param['projetos']) && !$hasLink) { 
+                $template_id = $param['projetos'];
+                $template = new Projeto($template_id);
+                
+                // CLONE PROJECT (Create Instance)
+                $instance = new Projeto;
+                $instance->nome = $template->nome . " - " . $usuario->nome;
+                $instance->descricao = $template->descricao;
+                $instance->company_template_id = $template->company_template_id;
+                $instance->dia_vencimento = $template->dia_vencimento;
+                $instance->ativo = 1;
+                $instance->is_template = '0'; // It's an instance
+                $instance->created_at = date('Y-m-d H:i:s');
+                $instance->store();
+                
+                // CLONE DOCUMENTS
+                $docs = ProjetoDocumento::where('projeto_id', '=', $template_id)->load();
+                if ($docs) {
+                    foreach ($docs as $doc) {
+                        $newDoc = new ProjetoDocumento;
+                        $newDoc->projeto_id = $instance->id;
+                        $newDoc->nome_documento = $doc->nome_documento;
+                        $newDoc->obrigatorio = $doc->obrigatorio;
+                        $newDoc->status = 'pendente';
+                        $newDoc->store();
+                    }
+                }
+                
+                // Link Client to Instance
                 $vinculo = new ClienteProjeto;
                 $vinculo->cliente_id = $usuario->id;
-                $vinculo->projeto_id = $param['projetos'];
+                $vinculo->projeto_id = $instance->id;
                 $vinculo->store();
             }
+            // If editing, we generally keep existing link.
             
             TTransaction::close();
             

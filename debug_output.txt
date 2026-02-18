@@ -1,0 +1,15 @@
+=== TABLES ===
+chat_messages, cliente_projeto, company_doc_templates, company_templates, entrega, mensagem, notification, projeto, projeto_documento, system_notification, usuario
+
+=== SYSTEM_USER_GROUP ===
+Error: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'banco_completo.system_user_group' doesn't exist
+
+=== USUARIO ===
+ID: 1 | Login: admin | Type: gestor
+ID: 3 | Login: user | Type: cliente
+ID: 4 | Login: muril365 | Type: cliente
+ID: 5 | Login: gestor | Type: gestor
+ID: 6 | Login: cliente1 | Type: cliente
+
+=== SYSTEM_USER ===
+Error: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'banco_completo.system_user' doesn't exist

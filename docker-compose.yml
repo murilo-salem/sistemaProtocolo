@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sistema-protocolo-app
+    container_name: sistema-protocolo-app
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/database.ini:/var/www/html/app/config/database.ini
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  db:
+    image: mysql:8.0
+    container_name: sistema-protocolo-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: banco_completo
+      MYSQL_ROOT_PASSWORD: rootparams_password  # CHANGE THIS!
+      MYSQL_PASSWORD: userparams_password    # CHANGE THIS!
+      MYSQL_USER: userparams
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./banco_completo.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+
+  pma:
+    image: phpmyadmin/phpmyadmin
+    container_name: sistema-protocolo-pma
+    restart: always
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db_data:

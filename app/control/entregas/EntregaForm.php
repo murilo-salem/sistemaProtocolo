@@ -51,6 +51,40 @@ class EntregaForm extends TPage
         // Register fields in the form
         $this->form->addFields([$cliente_id_field, $projeto_id_field, $mes, $ano]);
         
+        // Bloqueio de entrega duplicada (Aprovada)
+        try {
+            TTransaction::open('database');
+            $chk_mes = date('n');
+            $chk_ano = date('Y');
+            
+            $has_approved = Entrega::where('cliente_id', '=', $cliente_id)
+                                   ->where('mes_referencia', '=', $chk_mes)
+                                   ->where('ano_referencia', '=', $chk_ano)
+                                   ->where('status', '=', 'aprovado')
+                                   ->count() > 0;
+                                   
+            $has_pending = Entrega::where('cliente_id', '=', $cliente_id)
+                                  ->where('mes_referencia', '=', $chk_mes)
+                                  ->where('ano_referencia', '=', $chk_ano)
+                                  ->where('status', '=', 'pendente')
+                                  ->count() > 0;
+                                  
+            TTransaction::close();
+            
+            if ($has_approved) {
+                new TMessage('info', "Você já possui uma entrega <b>APROVADA</b> para este mês ({$chk_mes}/{$chk_ano}).<br>Não é necessário enviar novos documentos.");
+                return; // Stop rendering form
+            }
+            
+            if ($has_pending) {
+                new TMessage('info', "Você possui uma entrega <b>PENDENTE</b> para este mês ({$chk_mes}/{$chk_ano}).<br>Ao enviar novos documentos, sua entrega será atualizada.");
+                // Allow rendering form to edit/update
+            }
+            
+        } catch (Exception $e) {
+            // ignore
+        }
+        
         // -- HTML Rendering --
         $html = new THtmlRenderer('app/resources/entrega_form.html');
         
@@ -90,15 +124,7 @@ class EntregaForm extends TPage
         
         $this->form->add($content);
         
-        // DEBUG: Temporary info
-        $debug = new TElement('div');
-        $debug->style = 'background: #ffe; padding: 10px; border: 1px solid #ddd; margin-top: 20px;';
-        $debug->add("<b>DEBUG INFO:</b><br>");
-        $debug->add("Cliente ID Sessão: " . $cliente_id . "<br>");
-        $debug->add("Projeto ID Resolvido: " . var_export($projeto_id, true) . "<br>");
-        $debug->add("Documentos Encontrados: " . count($doc_items) . "<br>");
-        $debug->add("Project Documents Query: ProjektDocumento::where('projeto_id', '=', $projeto_id)<br>");
-        $this->form->add($debug);
+
         
         // Add Actions (injected into _ACTIONS_)
         $this->form->addAction('Enviar Entrega', new TAction([$this, 'onSave']), 'fa:check green');
@@ -117,11 +143,38 @@ class EntregaForm extends TPage
             $mes = $param['mes_referencia'];
             $ano = $param['ano_referencia'];
             
+            // Bloqueio Backend: Verifica se JÁ EXISTE entrega aprovada/pendente para este mês
+            $existing = Entrega::where('cliente_id', '=', $cliente_id)
+                               ->where('mes_referencia', '=', $mes)
+                               ->where('ano_referencia', '=', $ano)
+                               ->where('status', 'IN', ['aprovado', 'pendente', 'rejeitado']) // Include rejected to update them too
+                               ->first();
+                               
+            if ($existing) {
+                if ($existing->status == 'aprovado') {
+                    throw new Exception("Já existe uma entrega APROVADA para este mês ({$mes}/{$ano}).");
+                } 
+                // If 'pendente' or 'rejeitado', we ALLOW update.
+                // We will use $existing object to update.
+                $entrega = $existing;
+                $existing_docs = json_decode($entrega->documentos_json, true) ?? [];
+            } else {
+                // Create new
+                $entrega = new Entrega;
+                $entrega->cliente_id = $cliente_id;
+                $entrega->projeto_id = $projeto_id;
+                $entrega->mes_referencia = $mes;
+                $entrega->ano_referencia = $ano;
+                $entrega->created_at = date('Y-m-d H:i:s'); // Set creation time if new
+                $existing_docs = [];
+            }
+            
             // Get expected documents
             $doc_items = ProjetoDocumento::where('projeto_id', '=', $projeto_id)->load();
             
-            $documentos_salvos = [];
+            $documentos_salvos = $existing_docs; // Start with existing
             $missing = [];
+            $new_files_count = 0;
             
             foreach ($doc_items as $item) {
                 $field_name = 'doc_' . $item->id;
@@ -154,16 +207,17 @@ class EntregaForm extends TPage
                         
                         if (rename($verifyPath, $targetFile)) {
                              $documentos_salvos[$item->nome_documento] = $targetFile;
+                             $new_files_count++;
                         } else {
                              throw new Exception("Falha ao mover arquivo: {$fileName}");
                         }
-                    } else {
-                        // Debug log if file not found
-                        // file_put_contents('log_entrega_error.txt', "File not found: $verifyPath\n", FILE_APPEND);
                     }
                 } else {
-                    if (isset($item->obrigatorio) && ($item->obrigatorio == '1' || $item->obrigatorio === 1)) {
-                         $missing[] = $item->nome_documento;
+                    // Check if exists in previously saved docs
+                    if (!isset($documentos_salvos[$item->nome_documento])) {
+                        if (isset($item->obrigatorio) && ($item->obrigatorio == '1' || $item->obrigatorio === 1)) {
+                             $missing[] = $item->nome_documento;
+                        }
                     }
                 }
             }
@@ -171,35 +225,77 @@ class EntregaForm extends TPage
             if (empty($documentos_salvos)) {
                 throw new Exception("Nenhum documento foi anexado.");
             }
-
-            $entrega = new Entrega;
-            $entrega->cliente_id = $cliente_id;
-            $entrega->projeto_id = $projeto_id;
-            $entrega->mes_referencia = $mes;
-            $entrega->ano_referencia = $ano;
-            $entrega->documentos_json = json_encode($documentos_salvos);
-            $entrega->status = 'pendente';
-            $entrega->data_entrega = date('Y-m-d H:i:s');
-            $entrega->store();
-
-            // Notify Managers
-            try {
-                // Assuming Autoload can find NotificationService or we include it. 
-                // Since it is in app/service, it should be autoloaded if registered in init.
-                // If not, we might need require_once.
-                // For now assuming Adianti standard autoload works or I need to register it.
-                // Let's assume Standard Autoload.
-                
-                $cliente_nome = TSession::getValue('username');
-                $subject = "Nova Entrega: $cliente_nome";
-                $msg_body = "O cliente $cliente_nome enviou documentos referentes a " . str_pad($mes, 2, '0', STR_PAD_LEFT) . "/$ano.";
-                
-                NotificationService::notifyGestores(TSession::getValue('userid'), $subject, $msg_body);
-            } catch (Exception $e) {
-                // Ignore notification errors
+            
+            if (!empty($missing)) {
+                throw new Exception("Documentos obrigatórios faltando: " . implode(', ', $missing));
             }
 
+            // Update attributes
+            $entrega->documentos_json = json_encode($documentos_salvos);
+            $entrega->status = 'pendente'; // Reset to pending on update
+            $entrega->data_entrega = date('Y-m-d H:i:s'); // Update timestamp
+            
+            // Should usually reset validation info?
+            $entrega->observacoes = null; // Clear rejection notes? Or keep history?
+            // Maybe prepend old notes? For now, let's keep it simple.
+            
+            $entrega->store();
+            
+            // Salvar dados necessários para notificações
+            $entrega_id = $entrega->id;
+            $cliente_nome = TSession::getValue('username');
+            $periodo = str_pad($mes, 2, '0', STR_PAD_LEFT) . '/' . $ano;
+
             TTransaction::close();
+            // *** Transação principal fechada — entrega salva com sucesso ***
+
+            // Enviar notificações em transações isoladas (cada método abre/fecha a sua)
+            try {
+                // Notificação customizada para gestores (aparece no NotificationList)
+                NotificationService::notifyManagers(
+                    'Nova Entrega Recebida',
+                    "O cliente {$cliente_nome} enviou documentos referentes a {$periodo}.",
+                    'info',
+                    'entrega',
+                    $entrega_id,
+                    'class=EntregaValidacao&method=onView&id=' . $entrega_id
+                );
+                
+                // Notificação do sistema (barra superior Adianti) — precisa de transação própria
+                TTransaction::open('database');
+                $gestores = Usuario::where('tipo', 'IN', ['admin', 'gestor'])->load();
+                
+                if ($gestores) {
+                    $sent_to = [];
+                    foreach ($gestores as $user) {
+                        if (in_array($user->id, $sent_to)) continue;
+                        
+                        SystemNotification::register(
+                            $user->id,
+                            'Nova Entrega Recebida',
+                            "O cliente {$cliente_nome} enviou documentos referentes a {$periodo}.",
+                            'class=EntregaValidacao&method=onView&id=' . $entrega_id,
+                            'Validar Entrega',
+                            'fa fa-file-text-o'
+                        );
+                        $sent_to[] = $user->id;
+                    }
+                }
+                TTransaction::close();
+                
+                // Confirmação para o próprio cliente
+                NotificationService::notifyClient(
+                    $cliente_id,
+                    'Entrega Enviada com Sucesso',
+                    "Seus documentos referentes a {$periodo} foram recebidos e estão aguardando validação.",
+                    'success',
+                    'entrega',
+                    $entrega_id,
+                    'class=EntregaList'
+                );
+            } catch (Exception $e) {
+                // Ignorar erros de notificação — a entrega já foi salva
+            }
 
             new TMessage('info', 'Documentos enviados com sucesso!', new TAction(['EntregaList', 'onReload']));
             

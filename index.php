@@ -24,7 +24,7 @@ else
     $content = file_get_contents("app/templates/{$theme}/welcome.html");
     $menu_string = '';
     }
-    else if ($class === 'LoginForm') {
+    else if ($class === 'LoginForm' OR $class === 'PasswordRecoveryForm' OR $class === 'NewPasswordForm') {
         $content = file_get_contents("app/templates/{$theme}/login.html");
         $menu_string = '';
     }
@@ -38,7 +38,7 @@ else
             $menu_file = 'menu-cliente.xml';
         }
 
-        if ($class == 'LoginForm') {
+        if ($class == 'LoginForm' OR $class === 'PasswordRecoveryForm' OR $class === 'NewPasswordForm') {
             $menu_string = '';
         } else {
             $menu_string = AdiantiMenuBuilder::parse($menu_file, $theme);

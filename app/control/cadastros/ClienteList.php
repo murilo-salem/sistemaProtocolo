@@ -133,6 +133,10 @@ class ClienteList extends TPage
         $action_delete = new TDataGridAction([$this, 'onDelete'], ['id' => '{id}']);
         
         $this->datagrid->addAction($action_edit, 'Editar', 'fa:edit blue');
+        
+        $action_chat = new TDataGridAction(['SystemChat', 'onLoad'], ['target_id' => '{id}']);
+        $this->datagrid->addAction($action_chat, 'Chat', 'fa:comments-o green');
+        
         $this->datagrid->addAction($action_delete, 'Excluir', 'fa:trash red');
         
         $this->datagrid->createModel();

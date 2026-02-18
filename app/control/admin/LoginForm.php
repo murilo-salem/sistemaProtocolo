@@ -146,8 +146,8 @@ class LoginForm extends TPage
         
         $forgotLink = new TElement('a');
         $forgotLink->class = 'forgot-link';
-        $forgotLink->href = '#';
-        $forgotLink->onclick = "new TMessage('info', 'Entre em contato com o administrador para recuperar sua senha.'); return false;";
+        $forgotLink->href = 'index.php?class=PasswordRecoveryForm';
+        // $forgotLink->onclick = "new TMessage('info', 'Entre em contato com o administrador para recuperar sua senha.'); return false;";
         $forgotLink->add('Esqueceu a senha?');
         
         $optionsRow->add($rememberWrapper);

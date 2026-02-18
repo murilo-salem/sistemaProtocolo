@@ -148,11 +148,18 @@ class EntregaList extends TPage
         $action_validar = new TDataGridAction(['EntregaValidacao', 'onView'], ['id' => '{id}']);
         $this->datagrid->addAction($action_validar, 'Validar', 'fa:check green');
         
-        $action_consolidar = new TDataGridAction(['ConsolidarEntrega', 'onConsolidar'], ['id' => '{id}']);
+        // Ação Consolidar/Download - único ícone
+        $action_consolidar = new TDataGridAction(['ConsolidarEntregaV2', 'onConsolidar'], ['id' => '{id}']);
         $action_consolidar->setDisplayCondition(function($object) {
             return ($object->status == 'aprovado');
         });
-        $this->datagrid->addAction($action_consolidar, 'Consolidar', 'fa:file-pdf-o orange');
+        
+        // Define label dinamicamente com base no status de consolidação
+        // Note: TDataGridAction labels are static in standard Adianti, so we keep a generic label or rely on the icon context.
+        // However, we can use a transformer on a column if we wanted dynamic text, but for an action column, the icon is usually static.
+        // We will stick to the requested "Yellow Icon" which is fa-file-pdf.
+        
+        $this->datagrid->addAction($action_consolidar, 'Consolidar/Baixar PDF', 'fa:file-pdf orange');
         
         $this->datagrid->createModel();
         

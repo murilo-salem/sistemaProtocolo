@@ -23,6 +23,13 @@ class EntregaValidacao extends TPage
             $cliente = new Usuario($entrega->cliente_id);
             $projeto = new Projeto($entrega->projeto_id);
             
+            // Prevent self-validation
+            if ($entrega->cliente_id == TSession::getValue('userid')) {
+                new TMessage('error', 'Você não pode validar sua própria entrega. Aguarde a análise de um gestor.');
+                TTransaction::close();
+                return;
+            }
+            
             $this->form->clear();
             
             $entrega_id = new THidden('entrega_id');
@@ -120,13 +127,13 @@ class EntregaValidacao extends TPage
                 $btn_confirmar = $this->form->addAction('Confirmar Validação', new TAction([$this, 'onConfirmar']), 'fa:check-circle green');
             }
             
-            if ($entrega->status == 'aprovado' && !$entrega->consolidado) {
+            if ($entrega->status == 'aprovado' && !$entrega->isConsolidado()) {
                  // If already approved, show consolidate button
-                $btn_consolidar = $this->form->addAction('Gerar Consolidação', new TAction([$this, 'onConsolidarPDF']), 'fa:file-pdf-o orange');
+                $btn_consolidar = $this->form->addAction('Gerar Consolidação', new TAction([$this, 'onConsolidarPDF']), 'fa:file-pdf orange');
             }
             
-            if ($entrega->consolidado && $entrega->arquivo_consolidado) {
-                $btn_download = $this->form->addAction('Download PDF Consolidado', new TAction([$this, 'onDownload']), 'fa:download blue');
+            if ($entrega->isConsolidado() && $entrega->arquivo_consolidado && file_exists($entrega->arquivo_consolidado)) {
+                $btn_download = $this->form->addAction('Download PDF Consolidado', new TAction([$this, 'onDownload'], ['entrega_id' => $entrega->id]), 'fa:download blue');
             }
             
             $btn_voltar = $this->form->addAction('Voltar', new TAction(['EntregaList', 'onReload']), 'fa:arrow-left');
@@ -151,6 +158,11 @@ class EntregaValidacao extends TPage
             TTransaction::open('database');
             
             $entrega = new Entrega($param['entrega_id']);
+            
+            if ($entrega->cliente_id == TSession::getValue('userid')) {
+                throw new Exception('Você não pode validar sua própria entrega.');
+            }
+
             $count = (int) ($param['doc_count'] ?? 0);
             
             $all_approved = true;
@@ -177,29 +189,65 @@ class EntregaValidacao extends TPage
                 $entrega->observacoes = $param['observacoes'] ?? '';
                 $entrega->store();
                 
-                // Notify Client of Approval
-                try {
-                    $subject = "Entrega Aprovada: " . $entrega->mes_referencia . "/" . $entrega->ano_referencia;
-                    $msg_body = "Sua entrega de documentos referente a " . str_pad($entrega->mes_referencia, 2, '0', STR_PAD_LEFT) . "/" . $entrega->ano_referencia . " foi analisada e aprovada.";
-                    NotificationService::send(TSession::getValue('userid'), $entrega->cliente_id, $subject, $msg_body);
-                } catch (Exception $e) {}
+                // Salvar dados antes de fechar transação
+                $cliente_id = $entrega->cliente_id;
+                $entrega_id = $entrega->id;
+                $periodo = str_pad($entrega->mes_referencia, 2, '0', STR_PAD_LEFT) . '/' . $entrega->ano_referencia;
+                
+                TTransaction::close();
+                // *** Transação principal fechada — entrega atualizada ***
                 
                 new TMessage('info', 'Todos os documentos foram validados. Entrega APROVADA!');
+                
+                // Notificações em transações isoladas
+                try {
+                    $subject = "Entrega Aprovada: {$periodo}";
+                    $msg_body = "Sua entrega de documentos referente a {$periodo} foi analisada e aprovada.";
+                    
+                    // Notificação customizada (NotificationList)
+                    NotificationService::notifyClient(
+                        $cliente_id,
+                        $subject,
+                        $msg_body,
+                        'success',
+                        'entrega',
+                        $entrega_id,
+                        'class=EntregaList'
+                    );
+                    
+                    // Notificação do sistema (barra superior Adianti) — transação própria
+                    TTransaction::open('database');
+                    SystemNotification::register(
+                        $cliente_id,
+                        $subject,
+                        $msg_body,
+                        'class=EntregaList',
+                        'Ver Entregas',
+                        'fa fa-check-circle'
+                    );
+                    TTransaction::close();
+                } catch (Exception $e) {}
             } else {
                 $entrega->status = 'rejeitado';
                 $entrega->observacoes = $param['observacoes'] ?? '';
                 $entrega->store();
                 
-                // Send Notification (Rejection)
-                $this->notifyClient($entrega, $rejection_reasons);
+                // Salvar dados antes de fechar transação
+                $cliente_id = $entrega->cliente_id;
+                $entrega_id = $entrega->id;
+                $periodo = str_pad($entrega->mes_referencia, 2, '0', STR_PAD_LEFT) . '/' . $entrega->ano_referencia;
+                
+                TTransaction::close();
+                // *** Transação principal fechada — entrega atualizada ***
+                
+                // Enviar notificações de rejeição em transações isoladas
+                $this->notifyClient($cliente_id, $entrega_id, $periodo, $rejection_reasons);
                 
                 new TMessage('warning', 'Alguns documentos foram rejeitados. O cliente foi notificado.');
             }
             
-            TTransaction::close();
-            
             // Reload page to show new status
-            $this->onView(['id' => $entrega->id]);
+            $this->onView(['id' => $entrega_id]);
             
         } catch (Exception $e) {
             new TMessage('error', $e->getMessage());
@@ -207,17 +255,37 @@ class EntregaValidacao extends TPage
         }
     }
     
-    public function notifyClient($entrega, $reasons)
+    public function notifyClient($cliente_id, $entrega_id, $periodo, $reasons)
     {
-        // Use NotificationService
-        $msg_body = "Sua entrega referente a " . str_pad($entrega->mes_referencia, 2, '0', STR_PAD_LEFT) . "/" . $entrega->ano_referencia . " foi analisada e REJEITADA.\n\n";
+        $subject = "Correção Solicitada: Entrega {$periodo}";
+        
+        $msg_body = "Sua entrega referente a {$periodo} foi analisada e REJEITADA.\n\n";
         $msg_body .= "Motivos:\n";
         $msg_body .= implode("\n", $reasons);
         $msg_body .= "\n\nPor favor, corrija os arquivos e envie novamente.";
         
-        $subject = "Correção Solicitada: Entrega " . $entrega->mes_referencia . "/" . $entrega->ano_referencia;
+        // Notificação customizada (NotificationList)
+        NotificationService::notifyClient(
+            $cliente_id,
+            $subject,
+            $msg_body,
+            'warning',
+            'entrega',
+            $entrega_id,
+            'class=EntregaList'
+        );
         
-        NotificationService::send(TSession::getValue('userid'), $entrega->cliente_id, $subject, $msg_body);
+        // Notificação do sistema (barra superior Adianti) — transação própria
+        TTransaction::open('database');
+        SystemNotification::register(
+            $cliente_id,
+            $subject,
+            "Sua entrega referente a {$periodo} foi rejeitada. Verifique os motivos e corrija.",
+            'class=EntregaList',
+            'Ver Detalhes',
+            'fa fa-times-circle'
+        );
+        TTransaction::close();
     }
     
     public function onDownload($param)
@@ -227,17 +295,16 @@ class EntregaValidacao extends TPage
             
             $entrega = new Entrega($param['entrega_id']);
             
-            if ($entrega->arquivo_consolidado && file_exists($entrega->arquivo_consolidado)) {
-                $extension = strtolower(pathinfo($entrega->arquivo_consolidado, PATHINFO_EXTENSION));
-                $content_type = ($extension == 'pdf') ? 'application/pdf' : 'application/zip';
-                header('Content-Type: ' . $content_type);
-                header('Content-Disposition: attachment; filename="' . basename($entrega->arquivo_consolidado) . '"');
-                readfile($entrega->arquivo_consolidado);
-            } else {
-                throw new Exception('Arquivo consolidado não encontrado');
+            if (empty($entrega->arquivo_consolidado) || !file_exists($entrega->arquivo_consolidado)) {
+                throw new Exception('Arquivo consolidado não encontrado.');
             }
             
+            $entrega_id = $entrega->id;
             TTransaction::close();
+            
+            // Redirecionar para download via request direto (não AJAX)
+            // Isso evita que o binário do PDF seja injetado na resposta AJAX
+            TScript::create("window.location.href = 'engine.php?class=ConsolidarEntregaV2&method=onDownload&id={$entrega_id}';");
             
         } catch (Exception $e) {
             new TMessage('error', $e->getMessage());
@@ -247,7 +314,22 @@ class EntregaValidacao extends TPage
     
     public function onConsolidarPDF($param)
     {
-        // Forward logic to ConsolidarEntrega
-        ConsolidarEntrega::onConsolidar(['id' => $param['entrega_id']]);
+        try {
+            $service = new ConsolidacaoService();
+            $resultado = $service->consolidarEntrega($param['entrega_id']);
+            
+            if ($resultado['success']) {
+                $mensagem = 'Relatório consolidado gerado com sucesso!';
+                if (!empty($resultado['erros'])) {
+                    $mensagem .= "\n\nAvisos:\n- " . implode("\n- ", $resultado['erros']);
+                }
+                new TMessage('info', $mensagem, new TAction([$this, 'onView'], ['id' => $param['entrega_id']]));
+            } else {
+                $erros = implode("\n", $resultado['erros']);
+                new TMessage('error', "Erro na consolidação:\n{$erros}");
+            }
+        } catch (Exception $e) {
+            new TMessage('error', $e->getMessage());
+        }
     }
 }

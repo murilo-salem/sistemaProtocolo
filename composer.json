@@ -18,7 +18,19 @@
     "pablodalloglio/fpdf": "dev-master",
     "pablodalloglio/phprtflite": "dev-master",
     "spomky-labs/otphp": "^11.0",
-    "jfcherng/php-diff": "^6.16"
+    "jfcherng/php-diff": "^6.16",
+    "setasign/fpdi": "^2.6"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.5"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "./vendor/bin/phpunit"
   },
   "config": {
     "preferred-install": {

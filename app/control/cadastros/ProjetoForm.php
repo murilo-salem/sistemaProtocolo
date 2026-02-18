@@ -43,20 +43,27 @@ class ProjetoForm extends TPage
         $ativo->setUseButton();
         $ativo->addItems(['1' => 'Ativo', '0' => 'Inativo']);
         $ativo->setValue('1');
+        $ativo->setValue('1');
         $ativo->setLayout('horizontal');
+
+        $is_template = new TRadioGroup('is_template');
+        $is_template->setUseButton();
+        $is_template->addItems(['1' => 'Sim', '0' => 'Não']);
+        $is_template->setValue('1'); // Default to Template
+        $is_template->setLayout('horizontal');
         
         // Document list
         $this->documentos_list = new TFieldList;
         $this->documentos_list->generateAria();
         $this->documentos_list->width = '100%';
-        $this->documentos_list->enableSorting();
-        $this->documentos_list->setName('documentos_list');
+        //$this->documentos_list->disableSorting(); // Removed undefined method
+        //$this->documentos_list->setName('documentos_list'); // Removing name to avoid custom tag wrappers if any
 
-        $doc_nome = new TEntry('nome_doc[]');
-        $doc_nome->setProperty('placeholder', 'Nome do documento');
-        $doc_nome->setSize('100%');
+        $this->doc_nome = new TEntry('nome_doc[]');
+        $this->doc_nome->setProperty('placeholder', 'Nome do documento');
+        $this->doc_nome->setSize('100%');
         
-        $this->documentos_list->addField('Nome do Documento', $doc_nome, ['width' => '100%']);
+        $this->documentos_list->addField('Nome do Documento', $this->doc_nome, ['width' => '100%']);
         $this->documentos_list->addHeader();
 
         if (empty($_REQUEST['id'])) {
@@ -67,6 +74,24 @@ class ProjetoForm extends TPage
         // Build wizard HTML structure
         $html = new TElement('div');
         $html->class = 'wizard-container';
+        
+        $style = new TElement('style');
+        $style->add('
+            .wizard-step {
+                position: absolute;
+                top: 0;
+                left: -9999px;
+                opacity: 0;
+                width: 100%;
+                transition: opacity 0.3s;
+            }
+            .wizard-step.active {
+                position: relative;
+                left: 0;
+                opacity: 1;
+            }
+        ');
+        $html->add($style);
         
         // Wizard Header with Stepper
         $header = new TElement('div');
@@ -181,6 +206,15 @@ class ProjetoForm extends TPage
         $statusGroup->add($statusLabel);
         $statusGroup->add($ativo);
         $step2Fields->add($statusGroup);
+
+        // Is Template field group
+        $templateFlagGroup = new TElement('div');
+        $templateFlagGroup->class = 'field-group';
+        $templateFlagLabel = new TElement('label');
+        $templateFlagLabel->add('É um Modelo de Projeto?');
+        $templateFlagGroup->add($templateFlagLabel);
+        $templateFlagGroup->add($is_template);
+        $step2Fields->add($templateFlagGroup);
         
         $step2->add($step2Fields);
         $body->add($step2);
@@ -254,7 +288,7 @@ class ProjetoForm extends TPage
         $this->form->add($html);
         
         // Register form fields
-        $this->form->setFields([$id, $current_step, $nome, $descricao, $company_template_id, $dia_vencimento, $ativo, $btnSave]);
+        $this->form->setFields([$id, $current_step, $nome, $descricao, $company_template_id, $dia_vencimento, $ativo, $is_template, $this->doc_nome, $btnSave]);
         
         // Wizard JavaScript
         $script = new TElement('script');
@@ -366,6 +400,7 @@ class ProjetoForm extends TPage
                 $this->documentos_list->addCloneAction();
 
                 $data['ativo'] = ($projeto->ativo == 1) ? '1' : '0';
+                $data['is_template'] = ($projeto->is_template == 1) ? '1' : '0';
                 
                 $this->form->setData((object) $data);
                 
@@ -385,6 +420,7 @@ class ProjetoForm extends TPage
             $projeto->fromArray((array) $param);
             
             $projeto->ativo = (!empty($param['ativo']) && $param['ativo'] !== '0') ? 1 : 0;
+            $projeto->is_template = (!empty($param['is_template']) && $param['is_template'] !== '0') ? 1 : 0;
 
             $projeto->store();
             
