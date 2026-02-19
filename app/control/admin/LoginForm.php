@@ -43,7 +43,7 @@ class LoginForm extends TPage
         // Logo at top left
         $logo = new TElement('div');
         $logo->class = 'brand-logo';
-        $logo->add('<i class="fa fa-file-text-o"></i> <span>DocManager</span>');
+        $logo->add('<i class="fa fa-file-text-o"></i> <span>CSS Sistemas</span>');
         $leftPanel->add($logo);
         
         // Centered content
@@ -74,7 +74,7 @@ class LoginForm extends TPage
         // Footer with copyright
         $brandFooter = new TElement('div');
         $brandFooter->class = 'brand-footer';
-        $brandFooter->add('© ' . date('Y') . ' DocManager. Todos os direitos reservados.');
+        $brandFooter->add('© ' . date('Y') . ' CSS Sistemas. Todos os direitos reservados.');
         $leftPanel->add($brandFooter);
         
         $wrapper->add($leftPanel);

@@ -153,7 +153,7 @@ class NotificationService
             $criteria->add(new TFilter('system_user_id', '=', TSession::getValue('userid')));
             $criteria->setProperty('order', 'created_at');
             $criteria->setProperty('direction', 'desc');
-            $criteria->setProperty('limit', 5);
+            $criteria->setProperty('limit', 50);
             
             $notifications = $repo->load($criteria);
             
@@ -184,7 +184,7 @@ class NotificationService
                     $html .= "</div></a></li>";
                     $html .= "<li><hr class='dropdown-divider'></li>";
                 }
-                $html .= "<li><a class='dropdown-item text-center text-primary' href='#' onclick=\"Adianti.openPage('NotificationList')\">Ver todas as notificações</a></li>";
+                // Removed 'Ver todas' button as requested
             } else {
                 $html .= "<li><span class='dropdown-item text-muted text-center'>Nenhuma notificação</span></li>";
             }

@@ -1,5 +1,7 @@
 <?php
 
+use Adianti\Wrapper\BootstrapDatagridWrapper;
+
 class NotificationList extends TPage
 {
     private $datagrid;
@@ -51,6 +53,12 @@ class NotificationList extends TPage
         
         $this->datagrid->createModel();
         
+        
+        // Page Navigation
+        $this->pageNavigation = new TPageNavigation;
+        $this->pageNavigation->setAction(new TAction([$this, 'onReload']));
+        $this->pageNavigation->setWidth($this->datagrid->getWidth());
+        
         // Container
         $container = new TVBox;
         $container->style = 'width: 100%';
@@ -76,20 +84,30 @@ class NotificationList extends TPage
         // Panel
         $panel = new TPanelGroup('Notificações');
         $panel->add($this->datagrid);
+        $panel->addFooter($this->pageNavigation);
         $container->add($panel);
         
         parent::add($container);
     }
     
-    public function onReload()
+    public function onReload($param = NULL)
     {
         try {
             TTransaction::open('database');
             $repo = new TRepository('Notification');
+            $limit = 10;
+            
             $criteria = new TCriteria;
+            
+            // Default Params
+            if (empty($param['order'])) {
+                $param['order'] = 'created_at';
+                $param['direction'] = 'desc';
+            }
+            
+            $criteria->setProperties($param); // order, offset
+            $criteria->setProperty('limit', $limit);
             $criteria->add(new TFilter('system_user_id', '=', TSession::getValue('userid')));
-            $criteria->setProperty('order', 'created_at');
-            $criteria->setProperty('direction', 'desc');
             
             $notifications = $repo->load($criteria);
             $this->datagrid->clear();
@@ -100,7 +118,16 @@ class NotificationList extends TPage
                 }
             }
             
+            // Count
+            $criteria->resetProperties();
+            $count = $repo->count($criteria);
+            
+            $this->pageNavigation->setCount($count);
+            $this->pageNavigation->setProperties($param);
+            $this->pageNavigation->setLimit($limit);
+            
             TTransaction::close();
+            $this->loaded = true;
         } catch (Exception $e) {
             new TMessage('error', $e->getMessage());
         }

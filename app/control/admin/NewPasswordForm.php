@@ -54,7 +54,7 @@ class NewPasswordForm extends TPage
         
         $logo = new TElement('div');
         $logo->class = 'brand-logo';
-        $logo->add('<i class="fa fa-file-text-o"></i> <span>DocManager</span>');
+        $logo->add('<i class="fa fa-file-text-o"></i> <span>CSS Sistemas</span>');
         $leftPanel->add($logo);
         
         $brandContent = new TElement('div');
@@ -72,7 +72,7 @@ class NewPasswordForm extends TPage
         
         $brandFooter = new TElement('div');
         $brandFooter->class = 'brand-footer';
-        $brandFooter->add('© ' . date('Y') . ' DocManager. Todos os direitos reservados.');
+        $brandFooter->add('© ' . date('Y') . ' CSS Sistemas. Todos os direitos reservados.');
         $leftPanel->add($brandFooter);
         
         $wrapper->add($leftPanel);
