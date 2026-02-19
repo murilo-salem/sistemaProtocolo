@@ -201,7 +201,7 @@ class EntregaValidacao extends TPage
                 
                 // Notificações em transações isoladas
                 try {
-                    $subject = "Entrega Aprovada: {$periodo}";
+                    $subject = "Entrega Aprovada - {$periodo}";
                     $msg_body = "Sua entrega de documentos referente a {$periodo} foi analisada e aprovada.";
                     
                     // Notificação customizada (NotificationList)
@@ -257,9 +257,9 @@ class EntregaValidacao extends TPage
     
     public function notifyClient($cliente_id, $entrega_id, $periodo, $reasons)
     {
-        $subject = "Correção Solicitada: Entrega {$periodo}";
+        $subject = "Entrega Reprovada - {$periodo}";
         
-        $msg_body = "Sua entrega referente a {$periodo} foi analisada e REJEITADA.\n\n";
+        $msg_body = "Sua entrega referente a {$periodo} foi analisada e REJEITADA.\\n\\n";
         $msg_body .= "Motivos:\n";
         $msg_body .= implode("\n", $reasons);
         $msg_body .= "\n\nPor favor, corrija os arquivos e envie novamente.";
@@ -280,7 +280,7 @@ class EntregaValidacao extends TPage
         SystemNotification::register(
             $cliente_id,
             $subject,
-            "Sua entrega referente a {$periodo} foi rejeitada. Verifique os motivos e corrija.",
+            $msg_body,
             'class=EntregaList',
             'Ver Detalhes',
             'fa fa-times-circle'

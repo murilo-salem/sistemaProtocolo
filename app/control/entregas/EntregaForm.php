@@ -253,7 +253,7 @@ class EntregaForm extends TPage
             try {
                 // Notificação customizada para gestores (aparece no NotificationList)
                 NotificationService::notifyManagers(
-                    'Nova Entrega Recebida',
+                    "Entrega Realizada - {$cliente_nome}",
                     "O cliente {$cliente_nome} enviou documentos referentes a {$periodo}.",
                     'info',
                     'entrega',
@@ -272,7 +272,7 @@ class EntregaForm extends TPage
                         
                         SystemNotification::register(
                             $user->id,
-                            'Nova Entrega Recebida',
+                            "Entrega Realizada - {$cliente_nome}",
                             "O cliente {$cliente_nome} enviou documentos referentes a {$periodo}.",
                             'class=EntregaValidacao&method=onView&id=' . $entrega_id,
                             'Validar Entrega',
@@ -286,7 +286,7 @@ class EntregaForm extends TPage
                 // Confirmação para o próprio cliente
                 NotificationService::notifyClient(
                     $cliente_id,
-                    'Entrega Enviada com Sucesso',
+                    "Entrega Enviada - {$periodo}",
                     "Seus documentos referentes a {$periodo} foram recebidos e estão aguardando validação.",
                     'success',
                     'entrega',

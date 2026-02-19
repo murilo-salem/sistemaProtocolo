@@ -133,8 +133,21 @@ class NotificationService
      */
     public static function getLatestNotifications($param = null)
     {
+        // Limpar output buffers
+        while (ob_get_level() > 0) { ob_end_clean(); }
+        
+        // Forçar header HTML
+        header('Content-Type: text/html; charset=utf-8');
+        
+        // DEBUG TEMPORÁRIO
+        // echo "<li><a class='dropdown-item'>DEBUG: TESTE DE CONEXÃO</a></li>";
+        
+        // Marcar todas como lidas ao abrir a lista
+        self::markAllAsRead(TSession::getValue('userid'));
+        
         try {
             TTransaction::open('database');
+            
             $repo = new TRepository('Notification');
             $criteria = new TCriteria;
             $criteria->add(new TFilter('system_user_id', '=', TSession::getValue('userid')));
@@ -149,8 +162,11 @@ class NotificationService
             if ($notifications) {
                 foreach ($notifications as $n) {
                     $icon = $n->icon ? $n->icon : 'fa-regular fa-bell';
-                    $title = mb_strlen($n->title) > 30 ? mb_substr($n->title, 0, 30) . '...' : $n->title;
-                    $msg = mb_strlen($n->message) > 40 ? mb_substr($n->message, 0, 40) . '...' : $n->message;
+                    $n_title = $n->title ?? 'Sem título';
+                    $n_msg = $n->message ?? '';
+                    
+                    $title = mb_strlen($n_title) > 45 ? mb_substr($n_title, 0, 45) . '...' : $n_title;
+                    $msg = mb_strlen($n_msg) > 65 ? mb_substr($n_msg, 0, 65) . '...' : $n_msg;
                     $time = TDate::convertToMask($n->created_at, 'yyyy-mm-dd hh:ii:ss', 'dd/mm hh:ii');
                     $readClass = $n->read_at ? 'text-muted' : 'fw-bold';
                     
@@ -175,9 +191,11 @@ class NotificationService
             
             TTransaction::close();
             echo $html;
+            exit; // Prevent framework output
             
         } catch (Exception $e) {
             echo "<li><span class='dropdown-item text-danger'>Erro ao carregar</span></li>";
+            exit;
         }
     }
 }

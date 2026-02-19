@@ -550,8 +550,22 @@ class SystemChat extends TPage
     {
         try {
             TTransaction::open('database');
-            $logged = TSession::getValue('userid');
-            $users = Usuario::where('id', '!=', $logged)->where('ativo', '=', '1')->load();
+            $logged_id = TSession::getValue('userid');
+            $logged_user = Usuario::find($logged_id);
+            
+            // If logged user is NOT a gestor, they can only see gestors
+            // If logged user IS a gestor, they see everyone (active)
+            
+            $criteria = new TCriteria;
+            $criteria->add(new TFilter('id', '!=', $logged_id));
+            $criteria->add(new TFilter('ativo', '=', '1'));
+            
+            if ($logged_user->tipo !== 'gestor') {
+                $criteria->add(new TFilter('tipo', '=', 'gestor'));
+            }
+            
+            $repository = new TRepository('Usuario');
+            $users = $repository->load($criteria);
             
             if ($users) {
                 foreach ($users as $user) {
@@ -559,9 +573,8 @@ class SystemChat extends TPage
                     $initials = (!empty($u_nome)) ? strtoupper(substr($u_nome, 0, 2)) : '??';
                     
                     // Fetch Last Message & Unread
-                    // Subquery workaround or direct query:
-                    $last_msg_obj = ChatMessage::where('sender_id', '=', $logged)->where('receiver_id', '=', $user->id)
-                                        ->orWhere('sender_id', '=', $user->id)->where('receiver_id', '=', $logged)
+                    $last_msg_obj = ChatMessage::where('sender_id', '=', $logged_id)->where('receiver_id', '=', $user->id)
+                                        ->orWhere('sender_id', '=', $user->id)->where('receiver_id', '=', $logged_id)
                                         ->orderBy('id', 'desc')
                                         ->first();
                                         
@@ -570,13 +583,13 @@ class SystemChat extends TPage
                     $unread = 0;
                     
                     if ($last_msg_obj) {
-                        $prefix = ($last_msg_obj->sender_id == $logged) ? "Você: " : "";
-                        $last_msg_text = $prefix . (strlen($last_msg_obj->message) > 25 ? substr($last_msg_obj->message, 0, 25) . '...' : $last_msg_obj->message);
+                        $prefix = ($last_msg_obj->sender_id == $logged_id) ? "Você: " : "";
+                        $last_msg_text = $prefix . (mb_strlen($last_msg_obj->message) > 25 ? mb_substr($last_msg_obj->message, 0, 25) . '...' : $last_msg_obj->message);
                         $last_msg_time = date('H:i', strtotime($last_msg_obj->created_at));
                         
                         // Count unread
                         $unread = ChatMessage::where('sender_id', '=', $user->id)
-                                            ->where('receiver_id', '=', $logged)
+                                            ->where('receiver_id', '=', $logged_id)
                                             ->where('is_read', '=', 'N')
                                             ->count();
                     }
@@ -608,6 +621,33 @@ class SystemChat extends TPage
             TTransaction::close();
         } catch (Exception $e) {
             new TMessage('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * API Method to get unread message count for the current user (Badge)
+     */
+    public static function onGetUnreadCount($param)
+    {
+        try {
+            TTransaction::open('database');
+            $userid = TSession::getValue('userid');
+            
+            if ($userid) {
+                $count = ChatMessage::where('receiver_id', '=', $userid)
+                                   ->where('is_read', '=', 'N')
+                                   ->count();
+                
+                echo json_encode(['count' => $count, 'status' => 'success']);
+                exit;
+            } else {
+                echo json_encode(['count' => 0, 'status' => 'error']);
+                exit;
+            }
+            TTransaction::close();
+        } catch (Exception $e) {
+            echo json_encode(['count' => 0, 'status' => 'error', 'message' => $e->getMessage()]);
+            exit;
         }
     }
     
@@ -694,24 +734,7 @@ class SystemChat extends TPage
             // *** Transação fechada — mensagem salva ***
             
             // Notificar destinatário (em transação isolada)
-            try {
-                $sender_name = TSession::getValue('username') ?? 'Usuário';
-                $preview = mb_strlen($text) > 50 ? mb_substr($text, 0, 50) . '...' : $text;
-                
-                NotificationService::create(
-                    $receiver,
-                    "Nova mensagem de {$sender_name}",
-                    $preview,
-                    'info',
-                    'chat',
-                    $msg_id,
-                    "class=SystemChat&method=onLoad&target_id={$sender}",
-                    'Abrir Chat',
-                    'fa fa-comments'
-                );
-            } catch (Exception $e) {
-                // Ignorar erros de notificação
-            }
+            // REMOVIDO: Chat não deve gerar notificação no sininho, apenas no badge de chat.
             
             $time = date('H:i');
             $html = "<div class='message-bubble message-sent' data-id='{$msg_id}'>{$text}<span class='message-time'>{$time}</span></div>";
@@ -727,6 +750,9 @@ class SystemChat extends TPage
      */
     public static function getLatestMessages($param)
     {
+        // Limpar output buffers para evitar warnings do PHP no retorno AJAX
+        while (ob_get_level() > 0) { ob_end_clean(); }
+        
         try {
             TTransaction::open('database');
             $userid = TSession::getValue('userid');
@@ -787,8 +813,10 @@ class SystemChat extends TPage
             }
             TTransaction::close();
             echo $html;
+            exit;
         } catch (Exception $e) {
             echo "<li><span class='dropdown-item text-danger'>Erro ao carregar</span></li>";
+            exit;
         }
     }
 
@@ -827,22 +855,5 @@ class SystemChat extends TPage
         }
     }
     
-    public static function onGetUnreadCount($param)
-    {
-        try {
-            TTransaction::open('database');
-            $userid = TSession::getValue('userid');
-            
-            if ($userid) {
-                $count = ChatMessage::where('receiver_id', '=', $userid)
-                                    ->where('is_read', '=', 'N')
-                                    ->count();
-                
-                echo json_encode(['count' => $count]);
-            }
-            TTransaction::close();
-        } catch (Exception $e) {
-            // silent catch
-        }
-    }
+
 }

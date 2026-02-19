@@ -177,17 +177,11 @@ class ConsolidacaoService
             if (file_exists($doc_arquivo)) {
                 $extensao = strtolower(pathinfo($doc_arquivo, PATHINFO_EXTENSION));
                 
-                if ($extensao == 'pdf' && $useFPDI) {
-                    // Contar páginas do PDF
-                    try {
-                        $tempPdf = new Fpdi();
-                        $pageCount = $tempPdf->setSourceFile($doc_arquivo);
-                        $this->paginacao[$doc_nome]['paginas'] = $pageCount;
-                        $paginaAtual += $pageCount;
-                    } catch (Exception $e) {
-                        $this->erros[] = "Não foi possível ler páginas de: {$doc_nome}";
-                        $paginaAtual += 1; // Placeholder page
-                    }
+                if ($extensao == 'pdf') {
+                    // Contar páginas do PDF usando método robusto
+                    $pageCount = $this->contarPaginasPdf($doc_arquivo);
+                    $this->paginacao[$doc_nome]['paginas'] = $pageCount;
+                    $paginaAtual += $pageCount;
                 } elseif (in_array($extensao, ['jpg', 'jpeg', 'png', 'gif'])) {
                     // Imagens = 1 página cada
                     $paginaAtual += 1;
@@ -341,44 +335,73 @@ class ConsolidacaoService
             $extensao = strtolower(pathinfo($doc_arquivo, PATHINFO_EXTENSION));
             $nome_arquivo = basename($doc_arquivo);
             
-            if ($extensao == 'pdf' && $useFPDI) {
+            if ($extensao == 'pdf') {
                 // Importar páginas do PDF
-                try {
-                    $pageCount = $pdf->setSourceFile($doc_arquivo);
+                $pdfImportado = false;
+                $arquivoParaImportar = $doc_arquivo;
+                $arquivoTemp = null;
+                
+                if ($useFPDI) {
+                    // Tentativa 1: importar diretamente com FPDI
+                    try {
+                        $this->importarPaginasPdf($pdf, $arquivoParaImportar, $doc_nome);
+                        $pdfImportado = true;
+                    } catch (Exception $e) {
+                        // FPDI falhou — tentar pré-processar com Ghostscript
+                        $arquivoTemp = $this->preprocessarPdfComGhostscript($doc_arquivo);
+                        
+                        if ($arquivoTemp) {
+                            // Tentativa 2: importar o PDF pré-processado
+                            try {
+                                $this->importarPaginasPdf($pdf, $arquivoTemp, $doc_nome);
+                                $pdfImportado = true;
+                            } catch (Exception $e2) {
+                                $pdfImportado = false;
+                            }
+                        }
+                    }
+                }
+                
+                // Fallback final: renderizar páginas placeholder
+                if (!$pdfImportado) {
+                    $totalPaginas = $this->contarPaginasPdf($doc_arquivo);
                     
-                    for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                    for ($p = 1; $p <= $totalPaginas; $p++) {
                         $pdf->AddPage();
                         
-                        // Cabeçalho na primeira página do documento
-                        if ($pageNo == 1) {
-                            $pdf->SetFont('Arial', 'B', 10);
-                            $pdf->SetTextColor(100, 100, 100);
-                            $pdf->Cell(0, 5, $this->utf8("Documento: {$doc_nome}"), 0, 1);
-                            $pdf->SetDrawColor(200, 200, 200);
-                            $pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
-                            $pdf->Ln(2);
+                        if ($p == 1) {
+                            $pdf->SetFont('Arial', 'B', 12);
+                            $pdf->SetTextColor(0, 51, 102);
+                            $pdf->Cell(0, 8, $this->utf8("Documento: {$doc_nome}"), 0, 1);
+                            $pdf->SetFont('Arial', '', 9);
+                            $pdf->SetTextColor(128, 128, 128);
+                            $pdf->Cell(0, 5, $this->utf8("Arquivo: {$nome_arquivo}"), 0, 1);
+                            $pdf->Ln(3);
                         }
                         
-                        $templateId = $pdf->importPage($pageNo);
-                        $size = $pdf->getTemplateSize($templateId);
+                        $pdf->SetFillColor(240, 248, 255);
+                        $pdf->Rect(20, $pdf->GetY() + 5, 170, 60, 'F');
+                        $pdf->SetDrawColor(0, 102, 153);
+                        $pdf->Rect(20, $pdf->GetY() + 5, 170, 60, 'D');
                         
-                        // Calcular escala para caber na página
-                        $wRatio = 190 / $size['width'];
-                        $hRatio = 265 / $size['height'];
-                        $ratio = min($wRatio, $hRatio);
+                        $pdf->SetY($pdf->GetY() + 15);
+                        $pdf->SetFont('Arial', 'B', 14);
+                        $pdf->SetTextColor(0, 51, 102);
+                        $pdf->Cell(0, 10, $this->utf8("Página {$p} de {$totalPaginas}"), 0, 1, 'C');
                         
-                        $newWidth = $size['width'] * $ratio;
-                        $newHeight = $size['height'] * $ratio;
-                        
-                        // Centralizar
-                        $x = (210 - $newWidth) / 2;
-                        $y = $pdf->GetY() + 2;
-                        
-                        $pdf->useTemplate($templateId, $x, $y, $newWidth, $newHeight);
+                        $pdf->Ln(3);
+                        $pdf->SetFont('Arial', '', 11);
+                        $pdf->SetTextColor(80, 80, 80);
+                        $pdf->MultiCell(0, 6, $this->utf8(
+                            "Este documento PDF utiliza compressão avançada e não pôde ser incorporado diretamente.\n" .
+                            "Para visualizar o conteúdo completo, baixe o arquivo original do sistema."
+                        ), 0, 'C');
                     }
-                } catch (Exception $e) {
-                    $this->adicionarPaginaErro($pdf, $doc_nome, "Erro ao importar PDF: " . $e->getMessage());
-                    $this->erros[] = "Erro ao importar {$doc_nome}: " . $e->getMessage();
+                }
+                
+                // Limpar arquivo temporário
+                if ($arquivoTemp && file_exists($arquivoTemp)) {
+                    @unlink($arquivoTemp);
                 }
                 
             } elseif (in_array($extensao, ['jpg', 'jpeg', 'png', 'gif'])) {
@@ -459,6 +482,146 @@ class ConsolidacaoService
     }
     
     /**
+     * Importa páginas de um PDF usando FPDI
+     * 
+     * @param Fpdi $pdf Instância do FPDI
+     * @param string $arquivo Caminho do arquivo PDF
+     * @param string $doc_nome Nome do documento para o cabeçalho
+     */
+    private function importarPaginasPdf($pdf, $arquivo, $doc_nome)
+    {
+        $pageCount = $pdf->setSourceFile($arquivo);
+        
+        for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+            $pdf->AddPage();
+            
+            // Cabeçalho na primeira página do documento
+            if ($pageNo == 1) {
+                $pdf->SetFont('Arial', 'B', 10);
+                $pdf->SetTextColor(100, 100, 100);
+                $pdf->Cell(0, 5, $this->utf8("Documento: {$doc_nome}"), 0, 1);
+                $pdf->SetDrawColor(200, 200, 200);
+                $pdf->Line(10, $pdf->GetY(), 200, $pdf->GetY());
+                $pdf->Ln(2);
+            }
+            
+            $templateId = $pdf->importPage($pageNo);
+            $size = $pdf->getTemplateSize($templateId);
+            
+            // Calcular escala para caber na página
+            $wRatio = 190 / $size['width'];
+            $hRatio = 265 / $size['height'];
+            $ratio = min($wRatio, $hRatio);
+            
+            $newWidth = $size['width'] * $ratio;
+            $newHeight = $size['height'] * $ratio;
+            
+            // Centralizar
+            $x = (210 - $newWidth) / 2;
+            $y = $pdf->GetY() + 2;
+            
+            $pdf->useTemplate($templateId, $x, $y, $newWidth, $newHeight);
+        }
+    }
+    
+    /**
+     * Encontra o executável do Ghostscript no sistema
+     * 
+     * @return string|null Caminho do executável ou null se não encontrado
+     */
+    private function encontrarGhostscript()
+    {
+        // Caminhos comuns no Windows
+        $possiveisCaminhos = [];
+        
+        // Procurar em Program Files
+        $programFiles = ['C:\\Program Files\\gs', 'C:\\Program Files (x86)\\gs'];
+        foreach ($programFiles as $base) {
+            if (is_dir($base)) {
+                $dirs = @scandir($base);
+                if ($dirs) {
+                    foreach ($dirs as $dir) {
+                        if (strpos($dir, 'gs') === 0 && $dir !== '.' && $dir !== '..') {
+                            $possiveisCaminhos[] = "{$base}\\{$dir}\\bin\\gswin64c.exe";
+                            $possiveisCaminhos[] = "{$base}\\{$dir}\\bin\\gswin32c.exe";
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Verificar qual existe
+        foreach ($possiveisCaminhos as $caminho) {
+            if (file_exists($caminho)) {
+                return $caminho;
+            }
+        }
+        
+        // Tentar via PATH do sistema
+        $output = [];
+        @exec('gswin64c --version 2>&1', $output, $retval);
+        if ($retval === 0) {
+            return 'gswin64c';
+        }
+        
+        @exec('gswin32c --version 2>&1', $output, $retval);
+        if ($retval === 0) {
+            return 'gswin32c';
+        }
+        
+        @exec('gs --version 2>&1', $output, $retval);
+        if ($retval === 0) {
+            return 'gs';
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Pré-processa um PDF com Ghostscript para torná-lo compatível com FPDI
+     * Converte para PDF 1.4 (sem cross-reference streams comprimidos)
+     * 
+     * @param string $arquivo Caminho do PDF original
+     * @return string|null Caminho do PDF processado ou null se falhar
+     */
+    private function preprocessarPdfComGhostscript($arquivo)
+    {
+        $gs = $this->encontrarGhostscript();
+        if (!$gs) {
+            return null;
+        }
+        
+        $arquivoTemp = 'tmp/gs_converted_' . uniqid() . '.pdf';
+        
+        // Garantir que o diretório tmp existe
+        if (!is_dir('tmp')) {
+            mkdir('tmp', 0777, true);
+        }
+        
+        // Converter para PDF 1.4 (compatível com FPDI free parser)
+        $gsCmd = sprintf(
+            '"%s" -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dNOPAUSE -dQUIET -dBATCH -sOutputFile="%s" "%s" 2>&1',
+            $gs,
+            $arquivoTemp,
+            $arquivo
+        );
+        
+        $output = [];
+        exec($gsCmd, $output, $retval);
+        
+        if ($retval === 0 && file_exists($arquivoTemp) && filesize($arquivoTemp) > 0) {
+            return $arquivoTemp;
+        }
+        
+        // Falha — limpar
+        if (file_exists($arquivoTemp)) {
+            @unlink($arquivoTemp);
+        }
+        
+        return null;
+    }
+    
+    /**
      * Notifica o cliente sobre a consolidação
      */
     private function notificarCliente()
@@ -484,6 +647,49 @@ class ConsolidacaoService
         } catch (Exception $e) {
             // Ignorar erros de notificação
         }
+    }
+    
+    /**
+     * Conta o número de páginas de um arquivo PDF
+     * Usa smalot/pdfparser como estratégia principal e regex como fallback
+     *
+     * @param string $arquivo Caminho do arquivo PDF
+     * @return int Número de páginas
+     */
+    private function contarPaginasPdf($arquivo)
+    {
+        // Estratégia 1: smalot/pdfparser (suporta todos os tipos de PDF)
+        if (class_exists('\\Smalot\\PdfParser\\Parser')) {
+            try {
+                $parser = new \Smalot\PdfParser\Parser();
+                $pdfDoc = $parser->parseFile($arquivo);
+                $pages = $pdfDoc->getPages();
+                $count = count($pages);
+                if ($count > 0) {
+                    return $count;
+                }
+            } catch (\Exception $e) {
+                // Falha no parser — tentar fallback
+            }
+        }
+        
+        // Estratégia 2: Regex no conteúdo bruto do PDF
+        $content = @file_get_contents($arquivo);
+        if ($content !== false) {
+            // Procurar /Count N no catálogo de páginas (mais confiável)
+            if (preg_match('/\/Count\s+(\d+)/', $content, $matches)) {
+                $count = intval($matches[1]);
+                if ($count > 0) {
+                    return $count;
+                }
+            }
+            // Fallback: contar objetos /Type /Page (excluindo /Type /Pages)
+            if (preg_match_all('/\/Type\s*\/Page[^s]/i', $content, $matches)) {
+                return count($matches[0]);
+            }
+        }
+        
+        return 1; // Default mínimo
     }
     
     /**

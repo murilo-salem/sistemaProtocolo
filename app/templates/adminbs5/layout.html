@@ -79,11 +79,12 @@
                     </div>
                     <ul id="navbar-wrapper" class="navbar-nav" style="margin-right:10px">
                         <li class="nav-item dropdown" style="margin-right: 5px;">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownChat" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle position-relative" href="#" id="navbarDropdownChat"
+                                role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                style="padding-right: 1.5rem;">
                                 <i class="fa-regular fa-comments"></i>
-                                <span class="badge bg-danger" id="chat-badge"
-                                    style="display:none; position: absolute; top: 0; right: 0; font-size: 0.6em;">0</span>
+                                <span class="badge rounded-pill bg-danger" id="chat-badge"
+                                    style="display:none; position: absolute; top: 5px; right: 5px; font-size: 0.6em; padding: 0.25em 0.4em;">0</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownChat"
                                 id="chat-dropdown-menu" style="min-width: 300px; max-height: 400px; overflow-y: auto;">
@@ -93,28 +94,29 @@
                         </li>
                         <script>
                             function checkChatMessages() {
-                                $.get('engine.php?class=SystemChat&method=onGetUnreadCount', function (data) {
+                                $.get('engine.php?class=SystemChat&method=onGetUnreadCount&static=1&t=' + new Date().getTime(), function (data) {
                                     try {
                                         var response = JSON.parse(data);
-                                        if (response.count > 0) {
+                                        if (response.status == 'success' && response.count > 0) {
                                             $('#chat-badge').text(response.count).show();
                                         } else {
                                             $('#chat-badge').hide();
                                         }
-                                    } catch (e) { }
-                                });
+                                    } catch (e) { console.log('Chat check error:', e); }
+                                }).fail(function () { console.log('Chat check failed'); });
                             }
-                            // Check every 10 seconds
-                            setInterval(checkChatMessages, 10000);
+                            // Check every 5 seconds
+                            setInterval(checkChatMessages, 5000);
                             // Check on load
                             $(function () { checkChatMessages(); });
                         </script>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownNotifications" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle position-relative" href="#"
+                                id="navbarDropdownNotifications" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false" style="padding-right: 1.5rem;">
                                 <i class="fa-solid fa-bell"></i>
-                                <span class="badge bg-danger" id="notification-badge"
-                                    style="display:none; position: absolute; top: 0; right: 0; font-size: 0.6em;">0</span>
+                                <span class="badge rounded-pill bg-danger" id="notification-badge"
+                                    style="display:none; position: absolute; top: 5px; right: 5px; font-size: 0.6em; padding: 0.25em 0.4em;">0</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownNotifications"
                                 id="notification-dropdown-menu"
@@ -125,7 +127,7 @@
                         </li>
                         <script>
                             function checkNotifications() {
-                                $.get('engine.php?class=NotificationList&method=getUnreadCount', function (data) {
+                                $.get('engine.php?class=NotificationList&method=getUnreadCount&static=1&t=' + new Date().getTime(), function (data) {
                                     try {
                                         var response = JSON.parse(data);
                                         if (response.count > 0) {
@@ -133,24 +135,24 @@
                                         } else {
                                             $('#notification-badge').hide();
                                         }
-                                    } catch (e) { }
-                                });
+                                    } catch (e) { console.log('Notification check error:', e); }
+                                }).fail(function () { console.log('Notification check failed'); });
                             }
-                            // Check every 15 seconds
-                            setInterval(checkNotifications, 15000);
+                            // Check every 10 seconds
+                            setInterval(checkNotifications, 10000);
                             // Check on load
                             $(function () {
                                 checkNotifications();
 
                                 // Bind Dropdown Events
                                 $('#navbarDropdownChat').parent().on('show.bs.dropdown', function () {
-                                    $.get('engine.php?class=SystemChat&method=getLatestMessages', function (data) {
+                                    $.get('engine.php?class=SystemChat&method=getLatestMessages&static=1&t=' + new Date().getTime(), function (data) {
                                         $('#chat-dropdown-menu').html(data);
                                     });
                                 });
 
                                 $('#navbarDropdownNotifications').parent().on('show.bs.dropdown', function () {
-                                    $.get('engine.php?class=NotificationDropdown&method=getLatest', function (data) {
+                                    $.get('engine.php?class=NotificationDropdown&method=getLatest&static=1&t=' + new Date().getTime(), function (data) {
                                         $('#notification-dropdown-menu').html(data);
                                     });
                                 });

@@ -160,8 +160,10 @@ class NotificationList extends TPage
         try {
             $count = NotificationService::getUnreadCount(TSession::getValue('userid'));
             echo json_encode(['count' => $count]);
+            exit;
         } catch (Exception $e) {
             echo json_encode(['count' => 0]);
+            exit;
         }
     }
     

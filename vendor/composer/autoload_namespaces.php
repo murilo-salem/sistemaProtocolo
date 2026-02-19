@@ -18,6 +18,7 @@ return array(
     'TAdiantiStyle' => array($vendorDir . '/adianti/table-writers'),
     'TAdiantiElement' => array($vendorDir . '/adianti/table-writers'),
     'Spreadsheet' => array($vendorDir . '/pablodalloglio/spreadsheet_excel_writer'),
+    'Smalot\\PdfParser\\' => array($vendorDir . '/smalot/pdfparser/src'),
     'PHPRtfLite' => array($vendorDir . '/pablodalloglio/phprtflite/lib'),
     'OLE' => array($vendorDir . '/pablodalloglio/ole'),
     'ITableWriter' => array($vendorDir . '/adianti/table-writers'),
