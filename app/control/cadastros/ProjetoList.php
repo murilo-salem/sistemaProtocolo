@@ -212,6 +212,10 @@ class ProjetoList extends TPage
                 }
             }
             
+            // Limpa propriedades de ordenação para evitar erro de agrupamento no PostgreSQL
+            $criteria->setProperty('limit', NULL);
+            $criteria->setProperty('offset', NULL);
+            $criteria->setProperty('order', NULL);
             $count = Projeto::countObjects($criteria);
             $this->pageNavigation->setCount($count);
             $this->pageNavigation->setProperties($param);
@@ -224,10 +228,21 @@ class ProjetoList extends TPage
     
     public function onDelete($param)
     {
-        $action = new TAction([$this, 'Delete']);
-        $action->setParameters($param);
-        
-        new TQuestion('Deseja realmente excluir este projeto?', $action);
+        try {
+            TTransaction::open('database');
+            $projeto = Projeto::find($param['id']);
+            TTransaction::close();
+            
+            if (!$projeto) {
+                return;
+            }
+            $action = new TAction([$this, 'Delete']);
+            $action->setParameter('id', $param['id']);
+            
+            new TQuestion('Deseja realmente excluir este projeto?', $action);
+        } catch (Exception $e) {
+            new TMessage('error', $e->getMessage());
+        }
     }
     
     public function Delete($param)
@@ -236,6 +251,12 @@ class ProjetoList extends TPage
             TTransaction::open('database');
             
             $key = $param['id'];
+            $projeto = Projeto::find($key);
+            
+            if (!$projeto) {
+                TTransaction::close();
+                return;
+            }
             
             // Delete client-project links first
             ClienteProjeto::where('projeto_id', '=', $key)->delete();
@@ -245,7 +266,6 @@ class ProjetoList extends TPage
 
             ProjetoDocumento::where('projeto_id', '=', $key)->delete();
             
-            $projeto = new Projeto($key);
             $projeto->delete();
             
             TTransaction::close();

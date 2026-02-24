@@ -22,8 +22,17 @@ Este projeto foi configurado para rodar em containers Docker, facilitando o dese
 ## Serviços
 
 - **Aplicação Web**: Acessível em [http://localhost](http://localhost)
-- **Banco de Dados (MySQL)**: Host `db`, Porta `3306`, Usuário `root`, Senha `rootparams_password`
-- **phpMyAdmin**: Acessível em [http://localhost:8080](http://localhost:8080) (para gerenciar o banco)
+- **Banco de Dados (PostgreSQL)**: Host `db`, Porta `5432`, Usuário `root`, Senha `rootparams_password`
+- **Ollama**: Acessível em [http://localhost:11434](http://localhost:11434) (para IA local)
+
+## Preparando o Ollama
+
+Após subir os containers, é necessário baixar os modelos de IA utilizados pelo sistema. Execute os comandos abaixo:
+
+```bash
+docker exec -it sistema-protocolo-ollama ollama run gemma2:2b
+docker exec -it sistema-protocolo-ollama ollama run moondream
+```
 
 ## Estrutura Docker
 

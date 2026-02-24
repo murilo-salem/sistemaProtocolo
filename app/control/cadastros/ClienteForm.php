@@ -491,22 +491,11 @@ class ClienteForm extends TPage
                 $msg .= "Login: {$param['login']}\n";
                 $msg .= "Senha: {$senha_gerada}\n\n";
                 $msg .= "Anote estas informações!";
-                new TMessage('info', $msg);
                 
-                // Show the plain password in the form
-                $data = new stdClass;
-                $data->id = $usuario->id;
-                $data->nome = $usuario->nome;
-                $data->email = $usuario->email;
-                $data->login = $usuario->login;
-                $data->senha = $senha_gerada;
-                $data->ativo = $usuario->ativo ? '1' : '0';
-                $data->projetos = $param['projetos'] ?? null;
-                
-                $this->form->setData($data);
+                $action = new TAction(['ClienteList', 'onReload']);
+                new TMessage('info', $msg, $action);
             } else {
-                new TMessage('info', 'Cliente atualizado com sucesso');
-                TApplication::gotoPage('ClienteList');
+                new TMessage('info', 'Cliente atualizado com sucesso', new TAction(['ClienteList', 'onReload']));
             }
             
         } catch (Exception $e) {

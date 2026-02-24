@@ -1,0 +1,289 @@
+<script type='text/javascript'>setTimeout( function() { __adianti_load_page('index.php?class=ClienteList'); }, 1 )</script><!DOCTYPE html>
+<html class="notranslate" translate="no" data-bs-theme="light" data-menu-theme="dark">
+
+<head>
+    <title>Sistema de Gestão de Documentos</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="manifest" href="manifest.json?appver=830">
+    <link rel="shortcut icon" type="image/png" href="favicon.png" />
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="apple-touch-icon" sizes="180x180" href="app/images/icon.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+    
+    <!-- Third part libraries required by Adianti Framework -->
+    <script src="lib/jquery/js/jquery.min.js?afver=830" type="text/javascript"></script>
+    <script src="lib/bootstrap/js/bootstrap.bundle.min.js?afver=830"></script>
+    <script src="lib/bootstrap/js/bootstrap-plugins.min.js?afver=830" type="text/javascript"></script>
+    <script src="lib/bootstrap/js/locales/bootstrap-datepicker.pt.js?afver=830" type="text/javascript"></script>
+    <script src="lib/bootstrap/js/locales/bootstrap-datetimepicker.pt.js?afver=830" type="text/javascript"></script>
+    <script src="lib/bootstrap/js/lang/summernote-pt-BR.min.js?afver=830" type="text/javascript"></script>
+    <script src="lib/jquery/js/jquery-ui.min.js?afver=830" type="text/javascript"></script>
+    <script src="lib/jquery/js/jquery-plugins.min.js?afver=830" type="text/javascript"></script>
+    <script src="lib/jquery/js/select2_locales.js?afver=830" type="text/javascript"></script>
+    <script src="lib/independent/js/independent-plugins.min.js?afver=830" type="text/javascript"></script>
+    <script src="lib/independent/js/fullcalendar-pt.js?afver=830" type="text/javascript"></script>
+    
+    <!-- Adianti Framework core and components -->
+    <script src="lib/adianti/include/adianti.min.js?afver=830" type="text/javascript"></script>
+    <script src="lib/adianti/include/components.min.js?afver=830" type="text/javascript"></script>
+    
+    <!-- Application custom Javascript (Optional) -->
+    <script src="app/lib/include/application.js?appver=830" type="text/javascript"></script>
+    
+    <!-- Third part CSS required by Adianti Framework -->
+    <link href="lib/jquery/css/jquery-ui.min.css?afver=830" rel="stylesheet" type="text/css" media="screen" />
+    <link href="lib/jquery/css/jquery-plugins.min.css?afver=830" rel="stylesheet" type="text/css" media="screen" />
+    <link href="lib/bootstrap/css/bootstrap.min.css?afver=830" rel="stylesheet" type="text/css" media="screen" />
+    <link href="lib/bootstrap/css/boostrap-plugins.min.css?afver=830" rel="stylesheet" type="text/css" media="screen" />
+    <link href="lib/independent/css/independent-plugins.min.css?afver=830" rel="stylesheet" type="text/css" media="screen" />
+    
+    <!-- Adianti Framework Components CSS -->
+    <link href="lib/adianti/include/adianti.min.css?afver=830" rel="stylesheet" type="text/css" media="screen" />
+    <link href="lib/adianti/include/components.min.css?afver=830" rel="stylesheet" type="text/css" media="screen" />
+    
+    
+
+    <script src="app/lib/include/admin.js?appver=830" type="text/javascript"></script>
+    <link href="app/lib/include/admin.css?appver=830" rel="stylesheet" type="text/css" media="screen">
+
+    <script src="app/templates/adminbs5/js/theme.js?appver=830"></script>
+    <link rel="stylesheet" href="app/templates/adminbs5/theme.css?appver=830">
+    <link rel="stylesheet" href="app/templates/adminbs5/custom.css?appver={buildid}">
+
+    <script>
+        $(function () {
+            // Start framework.
+            Adianti.configure({ adianti_options });
+            Adianti.start();
+
+            // Start template.
+            Template.configure({ template_options });
+            Template.start();
+        });
+    </script>
+</head>
+
+<body>
+    <div class="wrapper">
+
+        <!--[SIDEBAR]-->
+        <aside id="sidebar" class="js-sidebar thin-scroll">
+            <div class="h-100" id="menu-wrapper">
+                <span class="sidebar-system-name border-bottom">
+                    <span class="sidebar-logo" style="margin-left: 0;">
+                        <img style="width:75%;margin-top:-5px" src="favicon.png">
+                    </span>
+                    <span class="name">
+                        CSS Sistemas
+                    </span>
+                </span>
+
+                <span class="sidebar-menu-title">
+                    <span class="name">MENU</span>
+                    <div id="has_menu_mode_switch" class="form-check form-switch" title="Modo escuro"
+                        style="display: inline;position: absolute;right: 0;margin-right: 15px; display:none">
+                        <input class="form-check-input" type="checkbox" role="switch" id="menu_theme_switch" checked=""
+                            style="cursor:pointer" onclick="Template.toggleMenuTheme(this)">
+                        <i class="fa-solid fa-circle-half-stroke"></i>
+                    </div>
+                </span>
+
+                <div id="search-box" style="margin-left:15px"></div>
+                <ul class="sidebar-nav" id="side-menu">
+<li class="sidebar-item"><a data-bs-target="#mi_1697259691" href="index.php?class=DashboardCliente" generator="adianti" class="sidebar-link collapsed">
+<i></i>
+<span>Meu Dashboard</span>
+</a>
+</li>
+<li class="sidebar-item">
+<a data-bs-target="#mi_1220366209" data-bs-toggle="collapse" href="index.php?class=EntregaList" generator="adianti" class="sidebar-link collapsed">
+<i></i>
+<span>Minhas Entregas</span>
+</a>
+<ul class="sidebar-dropdown list-unstyled collapse level-1" id="mi_1220366209"><li class="sidebar-item"><a data-bs-target="#mi_1915995195" href="index.php?class=EntregaForm" generator="adianti" class="sidebar-link collapsed">
+<i></i>
+<span>Nova Entrega</span>
+</a>
+</li>
+</ul>
+</li>
+<li class="sidebar-item"><a data-bs-target="#mi_1358725570" href="index.php?class=SystemChat" generator="adianti" class="sidebar-link collapsed">
+<i></i>
+<span>Chat</span>
+</a>
+</li>
+<li class="sidebar-item"><a data-bs-target="#mi_1690573187" href="index.php?class=LoginForm&method=onLogout" generator="adianti" class="sidebar-link collapsed">
+<i></i>
+<span>Sair</span>
+</a>
+</li>
+</ul>
+
+
+            </div>
+        </aside>
+        <!--[/SIDEBAR]-->
+
+        <div class="main">
+            <nav class="navbar navbar-expand px-3 border-bottom">
+                <button class="btn superlight" id="sidebar-toggle" type="button">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse navbar">
+                    <div class="nav-item" style="float:left">
+                        <a generator="adianti" class="btn superlight " style="padding: 5px;" title="Início" href="index.php?class=WelcomeView">
+<i class="fas fa-life-ring fa-fw" style="color:gray;font-size:1.2rem;float: left;margin-top: 3px;"></i>
+&nbsp;Início</a>
+
+                    </div>
+                    <ul id="navbar-wrapper" class="navbar-nav" style="margin-right:10px">
+                        <li class="nav-item dropdown" style="margin-right: 5px;">
+                            <a class="nav-link dropdown-toggle position-relative" href="#" id="navbarDropdownChat"
+                                role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                style="padding-right: 1.5rem;">
+                                <i class="fa-regular fa-comments"></i>
+                                <span class="badge rounded-pill bg-danger" id="chat-badge"
+                                    style="display:none; position: absolute; top: 5px; right: 5px; font-size: 0.6em; padding: 0.25em 0.4em;">0</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownChat"
+                                id="chat-dropdown-menu" style="min-width: 300px; max-height: 400px; overflow-y: auto;">
+                                <li><span class="dropdown-item text-muted text-center"><i
+                                            class="fa fa-spinner fa-spin"></i> Carregando...</span></li>
+                            </ul>
+                        </li>
+                        <script>
+                            function checkChatMessages() {
+                                $.get('engine.php?class=SystemChat&method=onGetUnreadCount&static=1&t=' + new Date().getTime(), function (data) {
+                                    try {
+                                        var response = JSON.parse(data);
+                                        if (response.status == 'success' && response.count > 0) {
+                                            $('#chat-badge').text(response.count).show();
+                                        } else {
+                                            $('#chat-badge').hide();
+                                        }
+                                    } catch (e) { console.log('Chat check error:', e); }
+                                }).fail(function () { console.log('Chat check failed'); });
+                            }
+                            // Check every 5 seconds
+                            setInterval(checkChatMessages, 5000);
+                            // Check on load
+                            $(function () { checkChatMessages(); });
+                        </script>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle position-relative" href="#"
+                                id="navbarDropdownNotifications" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false" style="padding-right: 1.5rem;">
+                                <i class="fa-solid fa-bell"></i>
+                                <span class="badge rounded-pill bg-danger" id="notification-badge"
+                                    style="display:none; position: absolute; top: 5px; right: 5px; font-size: 0.6em; padding: 0.25em 0.4em;">0</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownNotifications"
+                                id="notification-dropdown-menu"
+                                style="min-width: 300px; max-height: 400px; overflow-y: auto;">
+                                <li><span class="dropdown-item text-muted text-center"><i
+                                            class="fa fa-spinner fa-spin"></i> Carregando...</span></li>
+                            </ul>
+                        </li>
+                        <script>
+                            function checkNotifications() {
+                                $.get('engine.php?class=NotificationList&method=getUnreadCount&static=1&t=' + new Date().getTime(), function (data) {
+                                    try {
+                                        var response = JSON.parse(data);
+                                        if (response.count > 0) {
+                                            $('#notification-badge').text(response.count).show();
+                                        } else {
+                                            $('#notification-badge').hide();
+                                        }
+                                    } catch (e) { console.log('Notification check error:', e); }
+                                }).fail(function () { console.log('Notification check failed'); });
+                            }
+                            // Check every 10 seconds
+                            setInterval(checkNotifications, 10000);
+                            // Check on load
+                            $(function () {
+                                checkNotifications();
+
+                                // Bind Dropdown Events
+                                $('#navbarDropdownChat').parent().on('show.bs.dropdown', function () {
+                                    $.get('engine.php?class=SystemChat&method=getLatestMessages&static=1&t=' + new Date().getTime(), function (data) {
+                                        $('#chat-dropdown-menu').html(data);
+                                    });
+                                });
+
+                                $('#navbarDropdownNotifications').parent().on('show.bs.dropdown', function () {
+                                    $.get('engine.php?class=NotificationDropdown&method=getLatest&static=1&t=' + new Date().getTime(), function (data) {
+                                        $('#notification-dropdown-menu').html(data);
+                                    });
+                                });
+                            });
+                        </script>
+                    </ul>
+                </div>
+            </nav>
+
+            <ul id="adianti_tab_area" class="nav nav-underline" style="display:none">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" onclick="Template.goFirstPageTab()"> <i
+                            class="fa-solid fa-house"></i> <span>Home</span></a>
+                </li>
+            </ul>
+
+            <main id="adianti_div_content_wrapper" class="content px-3 py-2">
+                <div class="container-fluid" style="padding-right:0">
+                    <div id="adianti_div_content"></div>
+                </div>
+
+                <div id="adianti_right_panel" class="right-panel"></div>
+                <div id="adianti_online_content"></div>
+            </main>
+
+            <main id="adianti_tab_content_wrapper">
+                <div class="container-fluid" style="padding-right:0">
+                    <div id="adianti_tab_content"></div>
+                </div>
+            </main>
+
+            <footer class="footer">
+                <div class="container-fluid">
+                    <div class="row text-muted">
+                        <div class="col-12 text-start">
+                            <div style="text-align:right;float:left">
+                                <a generator="adianti" class="btn superlight " style="padding: 5px;" title="Aprenda" href="index.php?class=LearnView">
+<i class="fas fa-book fa-fw" style="color:gray;font-size:1.2rem;float: left;margin-top: 3px;"></i>
+&nbsp;GestorDocs V1</a>
+
+                            </div>
+                            <div id="has_main_mode_switch" class="form-check form-switch" title="Modo escuro"
+                                style="display: block;margin-left: 10px;float: right;padding-top:5px;">
+                                <input class="form-check-input" type="checkbox" role="switch" id="global_theme_switch"
+                                    checked="" style="cursor:pointer" onclick="Template.toggleGlobalTheme(this)">
+                                <i class="fa-solid fa-circle-half-stroke"></i>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+            </footer>
+
+            <div class="offcanvas offcanvas-bottom debug-panel" data-bs-scroll="true" data-bs-backdrop="false"
+                tabindex="-1" id="debug-panel" aria-labelledby="offcanvasScrollingLabel">
+                <div class="offcanvas-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <span class="debug-title"> Request URL </span>
+                    <span class="debug-title"> Request Data </span>
+                    <div class="debug-block" id="request_url_panel"> </div>
+                    <div class="debug-block" id="request_data_panel"> </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html><script type='text/javascript'>setTimeout( function() { __adianti_load_page('index.php?class=ClienteList'); }, 1 )</script>

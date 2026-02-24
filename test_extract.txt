@@ -1,0 +1,19 @@
+Extraindo de: A (app/uploads/projetos/8/4/2026-02-23_15-00-46/Hutchinson_Accelerated_Physics_Informed_Neural_Networks (1).pdf)...
+  -> Sucesso! Tamanho: 61962 bytes
+Extraindo de: B (app/uploads/projetos/8/4/2026-02-23_15-00-46/Consolidado_02_2026 (4).pdf)...
+  -> Sucesso! Tamanho: 1066 bytes
+Ignorando: C (Nao e PDF ou nao existe)
+
+
+Tamanho total do texto enviado para IO: 11112 bytes
+
+Preview Texto:
+--- Documento: A ---
+Revista de Inform´atica Te´orica e Aplicada - RITA - ISSN 2175-2745
+Vol. XX, Num. XX (2018) 11-XX
+RESEARCH ARTICLE
+Hutchinson-Accelerated Physics-Informed Neural Networks
+for High-Dimensional Derivative Pricing: Architecture,
+Sampling, and Scalability
+Redes Neurais Informadas 
+...

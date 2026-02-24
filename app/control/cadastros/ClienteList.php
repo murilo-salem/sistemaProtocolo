@@ -135,7 +135,7 @@ class ClienteList extends TPage
         $this->datagrid->addAction($action_edit, 'Editar', 'fa:edit blue');
         
         $action_chat = new TDataGridAction(['SystemChat', 'onLoad'], ['target_id' => '{id}']);
-        $this->datagrid->addAction($action_chat, 'Chat', 'fa:comments-o green');
+        $this->datagrid->addAction($action_chat, 'Chat', 'fa:comments green');
         
         $this->datagrid->addAction($action_delete, 'Excluir', 'fa:trash red');
         
@@ -218,6 +218,10 @@ class ClienteList extends TPage
                 }
             }
             
+            // Limpa ordenação para evitar erro de agregados no PostgreSQL
+            $criteria->setProperty('limit', NULL);
+            $criteria->setProperty('offset', NULL);
+            $criteria->setProperty('order', NULL);
             $count = Usuario::countObjects($criteria);
             $this->pageNavigation->setCount($count);
             $this->pageNavigation->setProperties($param);
@@ -230,10 +234,22 @@ class ClienteList extends TPage
     
     public function onDelete($param)
     {
-        $action = new TAction([$this, 'Delete']);
-        $action->setParameters($param);
-        
-        new TQuestion('Deseja realmente excluir este cliente?', $action);
+        try {
+            TTransaction::open('database');
+            $cliente = Usuario::find($param['id']);
+            TTransaction::close();
+            
+            if (!$cliente) {
+                return; // Ignora se o objeto já não existir no banco
+            }
+            
+            $action = new TAction([$this, 'Delete']);
+            $action->setParameter('id', $param['id']);
+            
+            new TQuestion('Deseja realmente excluir este cliente?', $action);
+        } catch (Exception $e) {
+            new TMessage('error', $e->getMessage());
+        }
     }
     
     public function Delete($param)
@@ -242,7 +258,12 @@ class ClienteList extends TPage
             TTransaction::open('database');
             
             $key = $param['id'];
-            $cliente = new Usuario($key);
+            $cliente = Usuario::find($key);
+            
+            if (!$cliente) {
+                TTransaction::close();
+                return; // Impede erro caso clique duplo tenha submetido o formulário Delete duas vezes
+            }
             
             ClienteProjeto::where('cliente_id', '=', $key)->delete();
             

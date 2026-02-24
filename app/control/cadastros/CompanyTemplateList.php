@@ -94,9 +94,22 @@ class CompanyTemplateList extends TPage
     
     public function onDelete($param)
     {
-        $action = new TAction([$this, 'Delete']);
-        $action->setParameters($param);
-        new TQuestion('Deseja realmente excluir?', $action);
+        try {
+            TTransaction::open('database');
+            $object = CompanyTemplate::find($param['id']);
+            TTransaction::close();
+            
+            if (!$object) {
+                return;
+            }
+            
+            $action = new TAction([$this, 'Delete']);
+            $action->setParameter('id', $param['id']);
+            
+            new TQuestion('Deseja realmente excluir?', $action);
+        } catch (Exception $e) {
+            new TMessage('error', $e->getMessage());
+        }
     }
     
     public function Delete($param)

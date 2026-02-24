@@ -6,8 +6,11 @@
     
      <menuitem label="Minhas Entregas">
         <icon>fa-upload</icon>
-        <action>EntregaList</action>
         <menu>
+            <menuitem label="Listar Entregas">
+                <icon>fa-list</icon>
+                <action>EntregaList</action>
+            </menuitem>
             <menuitem label="Nova Entrega">
                 <icon>fa-plus</icon>
                 <action>EntregaForm</action>

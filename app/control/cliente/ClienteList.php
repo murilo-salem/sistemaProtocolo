@@ -108,6 +108,10 @@ class ClienteList extends TPage
                 }
             }
             
+            // Limpa ordenação para evitar erro de agregados no PostgreSQL
+            $criteria->setProperty('limit', NULL);
+            $criteria->setProperty('offset', NULL);
+            $criteria->setProperty('order', NULL);
             $count = Usuario::countObjects($criteria);
             $this->pageNavigation->setCount($count);
             $this->pageNavigation->setProperties($param);

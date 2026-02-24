@@ -23,9 +23,10 @@ class EmpresaForm extends TPage
         $nome->setSize('100%');
         $nome->addValidation('Nome', new TRequiredValidator);
         
-        // Step 2: Project Templates
+        // Step 2: Project Templates DataGrid (For existing companies)
         $this->documentos_list = new TDataGrid;
         $this->documentos_list->style = 'width: 100%; margin-bottom: 20px';
+        $this->documentos_list->id = 'datagrid_modelos';
         
         $col_id = new TDataGridColumn('id', 'ID', 'center', '50px');
         $col_nome = new TDataGridColumn('nome', 'Nome do Modelo', 'left');
@@ -37,7 +38,6 @@ class EmpresaForm extends TPage
         $this->documentos_list->addColumn($col_docs_count);
         $this->documentos_list->addColumn($col_docs_summary);
         
-        // Actions
         $action_edit = new TDataGridAction(['ProjetoForm', 'onEdit']);
         $action_edit->setLabel('Editar Modelo');
         $action_edit->setImage('fa:edit blue');
@@ -45,6 +45,37 @@ class EmpresaForm extends TPage
         $this->documentos_list->addAction($action_edit);
         
         $this->documentos_list->createModel();
+
+        // Step 2: TFieldList for NEW companies (dynamic in-memory templates)
+        $this->modelos_list_new = new TFieldList;
+        $this->modelos_list_new->generateAria();
+        $this->modelos_list_new->width = '100%';
+        $this->modelos_list_new->id = 'fieldlist_modelos_novos';
+
+        $modelo_nome = new TEntry('modelo_nome[]');
+        $modelo_nome->setSize('100%');
+        $modelo_nome->setProperty('placeholder', 'Nome do projeto');
+
+        $modelo_desc = new TEntry('modelo_desc[]');
+        $modelo_desc->setSize('100%');
+        $modelo_desc->setProperty('placeholder', 'Descrição');
+
+        $modelo_venc = new TSpinner('modelo_venc[]');
+        $modelo_venc->setSize('100%');
+        $modelo_venc->setRange(1, 31, 1);
+        $modelo_venc->setValue(10);
+
+        $modelo_docs = new TEntry('modelo_docs[]');
+        $modelo_docs->setSize('100%');
+        $modelo_docs->setProperty('placeholder', 'RG, CNH, Comprovante... (separado por vírgula)');
+
+        $this->modelos_list_new->addField('Nome do Modelo', $modelo_nome, ['width' => '25%']);
+        $this->modelos_list_new->addField('Descrição', $modelo_desc, ['width' => '25%']);
+        $this->modelos_list_new->addField('Vencimento', $modelo_venc, ['width' => '15%']);
+        $this->modelos_list_new->addField('Documentos', $modelo_docs, ['width' => '35%']);
+        $this->modelos_list_new->addHeader();
+        $this->modelos_list_new->addDetail(new stdClass);
+        $this->modelos_list_new->addCloneAction();
         
         // Build wizard HTML structure
         $html = new TElement('div');
@@ -135,17 +166,23 @@ class EmpresaForm extends TPage
         $addBtn->style = 'display:none; margin-bottom: 15px;';
         $addBtn->id = 'btn-add-template';
         $addBtn->href = '#';
-        $addBtn->add('<i class="fa fa-plus"></i> Novo Modelo');
+        $addBtn->add('<i class="fa fa-plus"></i> Novo Modelo Avançado');
         $step2Fields->add($addBtn);
         
-        $msgSave = new TElement('div');
-        $msgSave->id = 'msg-save-first';
-        $msgSave->style = 'padding: 20px; text-align: center; color: #666; background: #f9fafb; border-radius: 8px; border: 1px dashed #ccc;';
-        $msgSave->add('Salve a empresa primeiro para adicionar modelos.');
-        $step2Fields->add($msgSave);
+        $wrapperNovos = new TElement('div');
+        $wrapperNovos->id = 'wrapper_modelos_novos';
+        $titleNovos = new TElement('h5');
+        $titleNovos->add('Modelos Iniciais (Serão criados junto com a empresa)');
+        $wrapperNovos->add($titleNovos);
+        $wrapperNovos->add($this->modelos_list_new);
+        $step2Fields->add($wrapperNovos);
         
-        // List
-        $step2Fields->add($this->documentos_list);
+        // List from DB (hidden on create)
+        $wrapperGrid = new TElement('div');
+        $wrapperGrid->id = 'wrapper_modelos_salvos';
+        $wrapperGrid->style = 'display:none;';
+        $wrapperGrid->add($this->documentos_list);
+        $step2Fields->add($wrapperGrid);
         
         $step2->add($step2Fields);
         $body->add($step2);
@@ -195,7 +232,7 @@ class EmpresaForm extends TPage
         $this->form->add($html);
         
         // Register form fields
-        $this->form->setFields([$id, $current_step, $nome, $btnSave]);
+        $this->form->setFields([$id, $current_step, $nome, $modelo_nome, $modelo_desc, $modelo_venc, $modelo_docs, $btnSave]);
         
         // Wizard JavaScript
         $script = new TElement('script');
@@ -292,11 +329,12 @@ class EmpresaForm extends TPage
                     }
                 }
                 
-                // Setup "Add Template" button
+                // Setup "Add Template" button & layout for EXSITING
                 TScript::create("
                     document.getElementById('btn-add-template').style.display = 'inline-block';
                     document.getElementById('btn-add-template').href = 'index.php?class=ProjetoForm&company_template_id={$empresa->id}&is_template=1';
-                    document.getElementById('msg-save-first').style.display = 'none';
+                    document.getElementById('wrapper_modelos_novos').style.display = 'none';
+                    document.getElementById('wrapper_modelos_salvos').style.display = 'block';
                 ");
                 
                 $this->form->setData((object) $data);
@@ -317,15 +355,49 @@ class EmpresaForm extends TPage
             $empresa->fromArray((array) $param);
             $empresa->store();
             
-            // We NO LONGER save CompanyDocTemplate here.
-            // Templates are managed in their own form.
+            // Handle in-memory templates from TFieldList (New models)
+            if (!empty($param['modelo_nome']) && is_array($param['modelo_nome'])) {
+                $nomes = $param['modelo_nome'];
+                $descs = $param['modelo_desc'] ?? [];
+                $vencs = $param['modelo_venc'] ?? [];
+                $docs  = $param['modelo_docs'] ?? [];
+                
+                for ($i = 0; $i < count($nomes); $i++) {
+                    if (!empty(trim($nomes[$i]))) {
+                        // Create Project Template
+                        $proj = new Projeto;
+                        $proj->nome = trim($nomes[$i]);
+                        $proj->descricao = trim($descs[$i] ?? '');
+                        $proj->company_template_id = $empresa->id;
+                        $proj->dia_vencimento = (int) ($vencs[$i] ?? 10);
+                        $proj->is_template = 1;
+                        $proj->ativo = 1;
+                        $proj->created_at = date('Y-m-d H:i:s');
+                        $proj->store();
+                        
+                        // Parse Documents (comma-separated list)
+                        $str_docs = $docs[$i] ?? '';
+                        if (!empty(trim($str_docs))) {
+                            $doc_names = explode(',', $str_docs);
+                            foreach ($doc_names as $doc_name) {
+                                if (!empty(trim($doc_name))) {
+                                    $pd = new ProjetoDocumento;
+                                    $pd->projeto_id = $proj->id;
+                                    $pd->nome_documento = trim($doc_name);
+                                    $pd->obrigatorio = 1;
+                                    $pd->status = 'pendente';
+                                    $pd->store();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             
             TTransaction::close();
 
-            new TMessage('info', 'Empresa salva com sucesso! Agora você pode adicionar Modelos de Projeto na aba seguinte.');
-            
-            // Reload to show "Add Template" button
-            TApplication::loadPage('EmpresaForm', 'onEdit', ['id' => $empresa->id]);
+            $action = new TAction(['EmpresaList', 'onReload']);
+            new TMessage('info', 'Empresa e modelos (se houver) salvos com sucesso!', $action);
 
         } catch (Exception $e) {
             new TMessage('error', $e->getMessage());

@@ -54,6 +54,10 @@ class HistoricoList extends TPage
         $projeto_id->setProperty('placeholder', 'Filtrar por projeto...');
         $projeto_id->setSize('100%');
         
+        $change_action = new TAction(['HistoricoList', 'onChange']);
+        $cliente_id->setChangeAction($change_action);
+        $projeto_id->setChangeAction($change_action);
+        
         $filterRow = new TElement('div');
         $filterRow->class = 'filter-row';
         
@@ -228,6 +232,19 @@ class HistoricoList extends TPage
         $data = $this->form->getData();
         TSession::setValue('HistoricoList_filter_data', $data);
         $this->onReload();
+    }
+    
+    public static function onChange($param)
+    {
+        // Pega os dados atuais do form no post e salva na sessão para aplicar o filtro
+        $data = new stdClass;
+        $data->cliente_id = $param['cliente_id'] ?? null;
+        $data->projeto_id = $param['projeto_id'] ?? null;
+        
+        TSession::setValue('HistoricoList_filter_data', $data);
+        
+        // Recarrega a página
+        TApplication::loadPage('HistoricoList', 'onReload');
     }
 
     public function onClear()

@@ -185,6 +185,10 @@ class EmpresaList extends TPage
                 }
             }
             
+            // Limpa ordenação para evitar erro de agregados no PostgreSQL
+            $criteria->setProperty('limit', NULL);
+            $criteria->setProperty('offset', NULL);
+            $criteria->setProperty('order', NULL);
             $count = CompanyTemplate::countObjects($criteria);
             $this->pageNavigation->setCount($count);
             $this->pageNavigation->setProperties($param);
@@ -197,10 +201,22 @@ class EmpresaList extends TPage
     
     public function onDelete($param)
     {
-        $action = new TAction([$this, 'Delete']);
-        $action->setParameters($param);
-        
-        new TQuestion('Deseja realmente excluir esta empresa?', $action);
+        try {
+            TTransaction::open('database');
+            $empresa = CompanyTemplate::find($param['id']);
+            TTransaction::close();
+            
+            if (!$empresa) {
+                return;
+            }
+            
+            $action = new TAction([$this, 'Delete']);
+            $action->setParameter('id', $param['id']);
+            
+            new TQuestion('Deseja realmente excluir esta empresa?', $action);
+        } catch (Exception $e) {
+            new TMessage('error', $e->getMessage());
+        }
     }
     
     public function Delete($param)
@@ -209,6 +225,12 @@ class EmpresaList extends TPage
             TTransaction::open('database');
             
             $key = $param['id'];
+            $empresa = CompanyTemplate::find($key);
+            
+            if (!$empresa) {
+                TTransaction::close();
+                return;
+            }
             
             // Check if there are projects linked
             $count = Projeto::where('company_template_id', '=', $key)->count();
@@ -220,7 +242,6 @@ class EmpresaList extends TPage
             CompanyDocTemplate::where('company_template_id', '=', $key)->delete();
             
             // Delete company
-            $empresa = new CompanyTemplate($key);
             $empresa->delete();
             
             TTransaction::close();

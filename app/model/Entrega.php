@@ -21,6 +21,7 @@ class Entrega extends TRecord
         parent::addAttribute('observacoes');
         parent::addAttribute('consolidado');
         parent::addAttribute('arquivo_consolidado');
+        parent::addAttribute('resumo_documentos');
     }
     
     public function get_cliente()

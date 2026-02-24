@@ -23,9 +23,16 @@ class EntregaValidacao extends TPage
             $cliente = new Usuario($entrega->cliente_id);
             $projeto = new Projeto($entrega->projeto_id);
             
+            // Apenas gestores podem validar entregas
+            if (TSession::getValue('usertype') != 'gestor') {
+                new TMessage('error', 'Apenas gestores podem validar entregas.');
+                TTransaction::close();
+                return;
+            }
+            
             // Prevent self-validation
             if ($entrega->cliente_id == TSession::getValue('userid')) {
-                new TMessage('error', 'Você não pode validar sua própria entrega. Aguarde a análise de um gestor.');
+                new TMessage('error', 'Você não pode validar sua própria entrega. Aguarde a análise de outro gestor.');
                 TTransaction::close();
                 return;
             }
@@ -48,7 +55,35 @@ class EntregaValidacao extends TPage
             $html .= "<p><strong>Data de Entrega:</strong> " . ($entrega->data_entrega ? date('d/m/Y H:i', strtotime($entrega->data_entrega)) : '-') . "</p>";
             $html .= "</div></div>";
             
-            $this->form->addContent([new TElement('div', $html)]);
+            $el_info = new TElement('div');
+            $el_info->add($html);
+            $this->form->addContent([$el_info]);
+            
+            // Resumo de IA
+            if (!empty($entrega->resumo_documentos)) {
+                $html_resumo = "<div class='panel panel-success' style='margin-bottom: 20px;'>";
+                $html_resumo .= "<div class='panel-heading'><i class='fa fa-magic'></i> Resumo da Inteligência Artificial (Ollama)</div>";
+                $resumo_seguro = htmlspecialchars($entrega->resumo_documentos, ENT_QUOTES, 'UTF-8');
+                
+                // Formatação básica de Markdown para HTML
+                $resumo_seguro = preg_replace('/\*\*(.*?)\*\*/s', '<strong>$1</strong>', $resumo_seguro);
+                $resumo_seguro = preg_replace('/(?<![a-zA-Z0-9])\*(.*?)\*(?![a-zA-Z0-9])/s', '<em>$1</em>', $resumo_seguro);
+                $resumo_seguro = preg_replace('/^### (.*?)$/m', '<h5 style="margin-top:10px; margin-bottom:5px; color:#444;">$1</h5>', $resumo_seguro);
+                $resumo_seguro = preg_replace('/^## (.*?)$/m', '<h4 style="margin-top:15px; margin-bottom:5px; color:#333; font-weight:bold;">$1</h4>', $resumo_seguro);
+                $resumo_seguro = preg_replace('/^# (.*?)$/m', '<h3 style="margin-top:20px; margin-bottom:10px; color:#222; font-weight:bold;">$1</h3>', $resumo_seguro);
+                $resumo_seguro = preg_replace('/^(\s*)\* (.*?)$/m', '$1&bull; $2', $resumo_seguro);
+                $resumo_seguro = preg_replace('/^(\s*)- (.*?)$/m', '$1&bull; $2', $resumo_seguro);
+                
+                // Preservar quebras de linha normais
+                $resumo_seguro = nl2br($resumo_seguro);
+                
+                $html_resumo .= "<div class='panel-body' style='font-size: 14px; line-height: 1.6; color: #333;'>{$resumo_seguro}</div>";
+                $html_resumo .= "</div>";
+                
+                $el_resumo = new TElement('div');
+                $el_resumo->add($html_resumo);
+                $this->form->addContent([$el_resumo]);
+            }
             
             // Lista de documentos
             $documentos = $entrega->get_documentos();
@@ -136,6 +171,13 @@ class EntregaValidacao extends TPage
                 $btn_download = $this->form->addAction('Download PDF Consolidado', new TAction([$this, 'onDownload'], ['entrega_id' => $entrega->id]), 'fa:download blue');
             }
             
+            // Botão para gerar resumo por IA (apenas se houver documentos e não tiver sido gerado)
+            if (empty($entrega->resumo_documentos) && count($entrega->get_documentos()) > 0) {
+                // TAction with window block to prevent multiple clicks and show progress
+                $actionGenSummary = new TAction([$this, 'onGerarResumo'], ['entrega_id' => $entrega->id]);
+                $this->form->addAction('🤖 Gerar Resumo (IA)', $actionGenSummary, 'fa:magic purple');
+            }
+            
             $btn_voltar = $this->form->addAction('Voltar', new TAction(['EntregaList', 'onReload']), 'fa:arrow-left');
             
             TTransaction::close();
@@ -159,6 +201,10 @@ class EntregaValidacao extends TPage
             
             $entrega = new Entrega($param['entrega_id']);
             
+            if (TSession::getValue('usertype') != 'gestor') {
+                throw new Exception('Apenas gestores podem validar entregas.');
+            }
+
             if ($entrega->cliente_id == TSession::getValue('userid')) {
                 throw new Exception('Você não pode validar sua própria entrega.');
             }
@@ -252,6 +298,11 @@ class EntregaValidacao extends TPage
         } catch (Exception $e) {
             new TMessage('error', $e->getMessage());
             TTransaction::rollback();
+            
+            // Recarrega a view usando o ID que está no TSession ou no form_search (se disponível) ou apenas renderiza dnv
+            if (isset($param['entrega_id'])) {
+                $this->onView(['id' => $param['entrega_id']]);
+            }
         }
     }
     
@@ -327,6 +378,33 @@ class EntregaValidacao extends TPage
             } else {
                 $erros = implode("\n", $resultado['erros']);
                 new TMessage('error', "Erro na consolidação:\n{$erros}");
+            }
+        } catch (Exception $e) {
+            new TMessage('error', $e->getMessage());
+        }
+    }
+    
+    /**
+     * Gera um resumo utilizando IA local
+     */
+    public function onGerarResumo($param)
+    {
+        try {
+            // TPage::openWindow não tem suporte direto assim num controller, a melhor forma no web
+            // Mas usaremos uma requisição comum
+            TTransaction::open('database');
+            $entrega_id = $param['entrega_id'];
+            
+            // Fechar para não lockar durante inferência da IA que pode demorar
+            TTransaction::close();
+
+            $service = new DocumentSummarizerService();
+            $resultado = $service->resumirEntrega($entrega_id);
+
+            if ($resultado['success']) {
+                new TMessage('info', $resultado['message'], new TAction([$this, 'onView'], ['id' => $param['entrega_id']]));
+            } else {
+                new TMessage('error', "Erro ao gerar resumo: " . $resultado['message']);
             }
         } catch (Exception $e) {
             new TMessage('error', $e->getMessage());

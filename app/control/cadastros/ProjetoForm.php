@@ -422,6 +422,10 @@ class ProjetoForm extends TPage
             $projeto->ativo = (!empty($param['ativo']) && $param['ativo'] !== '0') ? 1 : 0;
             $projeto->is_template = (!empty($param['is_template']) && $param['is_template'] !== '0') ? 1 : 0;
 
+            if (empty($projeto->company_template_id)) {
+                $projeto->company_template_id = null;
+            }
+
             $projeto->store();
             
             ProjetoDocumento::where('projeto_id', '=', $projeto->id)->delete();
@@ -448,8 +452,7 @@ class ProjetoForm extends TPage
 
             TTransaction::close();
 
-            new TMessage('info', 'Projeto salvo com sucesso!');
-            TApplication::gotoPage('ProjetoList');
+            new TMessage('info', 'Projeto salvo com sucesso!', new TAction(['ProjetoList', 'onReload']));
 
         } catch (Exception $e) {
             new TMessage('error', $e->getMessage());

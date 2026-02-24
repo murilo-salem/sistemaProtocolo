@@ -49,6 +49,7 @@ CREATE TABLE entrega (
     data_aprovacao DATETIME,
     aprovado_por INT,
     observacoes TEXT,
+    resumo_documentos TEXT,
     FOREIGN KEY (cliente_id) REFERENCES usuario(id),
     FOREIGN KEY (projeto_id) REFERENCES projeto(id),
     FOREIGN KEY (aprovado_por) REFERENCES usuario(id)

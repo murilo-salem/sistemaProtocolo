@@ -1,0 +1,11 @@
+Entrega ID: 2
+Total de documentos no JSON: 3
+[A] => app/uploads/projetos/8/4/2026-02-23_15-00-46/Hutchinson_Accelerated_Physics_Informed_Neural_Networks (1).pdf
+  -> Arquivo existe no disco.
+  -> É um PDF valido.
+[B] => app/uploads/projetos/8/4/2026-02-23_15-00-46/Consolidado_02_2026 (4).pdf
+  -> Arquivo existe no disco.
+  -> É um PDF valido.
+[C] => app/uploads/projetos/8/4/2026-02-23_15-00-46/A1.png
+  -> Arquivo existe no disco.
+  -> NÃO é PDF.

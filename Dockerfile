@@ -12,11 +12,14 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
     default-mysql-client \
+    libpq-dev \
+    postgresql-client \
+    ghostscript \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd pdo_mysql mbstring exif pcntl bcmath xml zip
+    && docker-php-ext-install -j$(nproc) gd pdo_mysql pdo_pgsql pgsql mbstring exif pcntl bcmath xml zip
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
@@ -38,7 +41,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Install PHP dependencies (if composer.json exists)
 RUN if [ -f "composer.json" ]; then \
-        composer install --no-interaction --no-plugins --no-scripts --prefer-dist; \
+    composer install --no-interaction --no-plugins --no-scripts --prefer-dist; \
     fi
 
 # Set permissions

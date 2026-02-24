@@ -145,8 +145,10 @@ class EntregaList extends TPage
         $this->datagrid->addColumn($col_data);
         
         // Actions
-        $action_validar = new TDataGridAction(['EntregaValidacao', 'onView'], ['id' => '{id}']);
-        $this->datagrid->addAction($action_validar, 'Validar', 'fa:check green');
+        if (TSession::getValue('usertype') == 'gestor') {
+            $action_validar = new TDataGridAction(['EntregaValidacao', 'onView'], ['id' => '{id}']);
+            $this->datagrid->addAction($action_validar, 'Validar', 'fa:check green');
+        }
         
         // Ação Consolidar/Download - único ícone
         $action_consolidar = new TDataGridAction(['ConsolidarEntregaV2', 'onConsolidar'], ['id' => '{id}']);
@@ -236,6 +238,10 @@ class EntregaList extends TPage
                 }
             }
             
+            // Limpa ordenação para evitar erro de agregados no PostgreSQL
+            $criteria->setProperty('limit', NULL);
+            $criteria->setProperty('offset', NULL);
+            $criteria->setProperty('order', NULL);
             $count = Entrega::countObjects($criteria);
             $this->pageNavigation->setCount($count);
             $this->pageNavigation->setProperties($param);
