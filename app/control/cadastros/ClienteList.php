@@ -80,13 +80,23 @@ class ClienteList extends TPage
         $searchWrapper->add($searchIcon);
         $searchWrapper->add($searchInput);
         
+        $criteria_gestor = new TCriteria;
+        $criteria_gestor->add(new TFilter('tipo', '=', 'gestor'));
+        $gestor_id = new TDBCombo('gestor_id', 'database', 'Usuario', 'id', 'nome', 'nome', $criteria_gestor);
+        $gestor_id->setProperty('placeholder', 'Filtrar por Gestor...');
+        $gestor_id->setSize('100%');
+        $gestor_id->setDefaultOption('Todos os Gestores');
+        
         $btnSearch = new TButton('btn_search');
         $btnSearch->setAction(new TAction([$this, 'onSearch']), 'Buscar');
         $btnSearch->class = 'btn-search';
-        
+
         $this->form->add($searchWrapper);
+        if (TSession::getValue('usertype') == 'root') {
+            $this->form->add($gestor_id);
+        }
         $this->form->add($btnSearch);
-        $this->form->setFields([$searchInput, $btnSearch]);
+        $this->form->setFields([$searchInput, $gestor_id, $btnSearch]);
         
         $searchBar->add($this->form);
         $card->add($searchBar);
@@ -124,8 +134,17 @@ class ClienteList extends TPage
             }
         });
         
+        $col_gestor = new TDataGridColumn('gestor_id', 'Responsável', 'left');
+
+        $col_gestor->setTransformer(function($value, $object) {
+            if ($object->tipo == 'gestor') return '<span class="label label-info">Autogestão</span>';
+            $gestor = $object->gestor;
+            return $gestor->nome ?? '<span class="text-muted">—</span>';
+        });
+
         $this->datagrid->addColumn($col_nome);
         $this->datagrid->addColumn($col_email);
+        $this->datagrid->addColumn($col_gestor);
         $this->datagrid->addColumn($col_ativo);
         
         // Actions
@@ -188,7 +207,9 @@ class ClienteList extends TPage
             TTransaction::open('database');
             
             $criteria = new TCriteria;
-            $criteria->add(new TFilter('tipo', '=', 'cliente'));
+            if (TSession::getValue('usertype') !== 'root') {
+                $criteria->add(new TFilter('tipo', '=', 'cliente'));
+            }
             
             // Apply quick filter
             $quickFilter = TSession::getValue('ClienteList_quickfilter') ?? 'todos';
@@ -202,6 +223,9 @@ class ClienteList extends TPage
             if ($filter = TSession::getValue('ClienteList_filter')) {
                 if (!empty($filter->nome)) {
                     $criteria->add(new TFilter('nome', 'like', "%{$filter->nome}%"));
+                }
+                if (!empty($filter->gestor_id)) {
+                    $criteria->add(new TFilter('gestor_id', '=', $filter->gestor_id));
                 }
             }
             

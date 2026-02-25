@@ -22,11 +22,28 @@ class ClienteForm extends TPage
         $nome->setSize('100%');
         $nome->addValidation('Nome', new TRequiredValidator);
         
+        $tipo = new TCombo('tipo');
+        $tipo->addItems(['cliente' => 'Cliente', 'gestor' => 'Gestor']);
+        $tipo->setValue('cliente');
+        $tipo->setSize('100%');
+        if (TSession::getValue('usertype') != 'root') {
+            // Apenas root pode mudar o tipo
+            $tipo->setEditable(false);
+        }
+        
+        
         $email = new TEntry('email');
         $email->setProperty('placeholder', 'email@exemplo.com');
         $email->setSize('100%');
         $email->addValidation('Email', new TRequiredValidator);
         $email->addValidation('Email', new TEmailValidator);
+        
+        $criteria_gestor = new TCriteria;
+        $criteria_gestor->add(new TFilter('tipo', '=', 'gestor'));
+        $gestor_id = new TDBCombo('gestor_id', 'database', 'Usuario', 'id', 'nome', 'nome', $criteria_gestor);
+        $gestor_id->setProperty('placeholder', 'Selecione o gestor responsável');
+        $gestor_id->setSize('100%');
+        $gestor_id->setDefaultOption('— Ninguém —');
         
         // Step 2: Access & Project
         $login = new TEntry('login');
@@ -129,6 +146,26 @@ class ClienteForm extends TPage
         $emailGroup->add($emailLabel);
         $emailGroup->add($email);
         $step1Fields->add($emailGroup);
+        
+        // Tipo field group
+        $tipoGroup = new TElement('div');
+        $tipoGroup->class = 'field-group';
+        $tipoLabel = new TElement('label');
+        $tipoLabel->add('Tipo de Usuário *');
+        $tipoGroup->add($tipoLabel);
+        $tipoGroup->add($tipo);
+        $step1Fields->add($tipoGroup);
+
+        // Gestor field group (Apenas Root define gestor, gestores comuns sao auto-atribuidos)
+        if (TSession::getValue('usertype') == 'root') {
+            $gestorGroup = new TElement('div');
+            $gestorGroup->class = 'field-group';
+            $gestorLabel = new TElement('label');
+            $gestorLabel->add('Gestor Responsável');
+            $gestorGroup->add($gestorLabel);
+            $gestorGroup->add($gestor_id);
+            $step1Fields->add($gestorGroup);
+        }
         
         $step1->add($step1Fields);
         $body->add($step1);
@@ -252,7 +289,7 @@ class ClienteForm extends TPage
         $this->form->add($html);
         
         // Register form fields
-        $this->form->setFields([$id, $current_step, $nome, $email, $login, $senha, $empresa_id, $projetos, $ativo, $btnSave]);
+        $this->form->setFields([$id, $current_step, $nome, $tipo, $email, $gestor_id, $login, $senha, $empresa_id, $projetos, $ativo, $btnSave]);
         
         // Wizard JavaScript
         $script = new TElement('script');
@@ -438,6 +475,17 @@ class ClienteForm extends TPage
             
             $usuario->nome = $param['nome'];
             $usuario->email = $param['email'];
+            
+            // Atribuição de Gestor: Root escolhe, Gestor é ele mesmo
+            if (TSession::getValue('usertype') == 'root') {
+                $usuario->gestor_id = !empty($param['gestor_id']) ? $param['gestor_id'] : NULL;
+            } else if (TSession::getValue('usertype') == 'gestor') {
+                $usuario->gestor_id = TSession::getValue('userid');
+            }
+
+            if (isset($param['tipo']) && TSession::getValue('usertype') == 'root') {
+                $usuario->tipo = $param['tipo'];
+            }
             $usuario->ativo = (!empty($param['ativo']) && $param['ativo'] !== '0') ? 1 : 0;
             $usuario->store();
             
@@ -487,10 +535,24 @@ class ClienteForm extends TPage
             TTransaction::close();
             
             if (isset($senha_gerada)) {
+                $email_sent = false;
+                try {
+                    EmailService::sendCredentials($usuario, $senha_gerada);
+                    $email_sent = true;
+                } catch (Exception $e) {
+                    // We don't want to stop the whole process if email fails, but let's notify
+                    $email_error = $e->getMessage();
+                }
+
                 $msg = "Cliente salvo com sucesso!\n\n";
                 $msg .= "Login: {$param['login']}\n";
                 $msg .= "Senha: {$senha_gerada}\n\n";
-                $msg .= "Anote estas informações!";
+                
+                if ($email_sent) {
+                    $msg .= "As credenciais foram enviadas para o e-mail: {$usuario->email}";
+                } else {
+                    $msg .= "AVISO: Não foi possível enviar o e-mail de boas-vindas: " . ($email_error ?? 'Erro desconhecido');
+                }
                 
                 $action = new TAction(['ClienteList', 'onReload']);
                 new TMessage('info', $msg, $action);

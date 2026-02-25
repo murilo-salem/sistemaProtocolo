@@ -213,8 +213,8 @@ class EntregaList extends TPage
             
             $criteria = new TCriteria;
             
-            // Client filter (non-gestor)
-            if (TSession::getValue('usertype') != 'gestor') {
+            // Client filter (non-gestor and non-root)
+            if (!in_array(TSession::getValue('usertype'), ['gestor', 'root'])) {
                 $criteria->add(new TFilter('cliente_id', '=', TSession::getValue('userid')));
             }
             

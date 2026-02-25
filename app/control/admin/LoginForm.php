@@ -188,6 +188,28 @@ class LoginForm extends TPage
     public static function onLogin($param)
     {
         try {
+            // Verifica credenciais ROOT no ambiente ou no .env
+            $rootUser = getenv('ROOT_USER');
+            $rootPass = getenv('ROOT_PASS');
+            
+            if (!$rootUser && file_exists('.env')) {
+                $env = parse_ini_file('.env');
+                if ($env) {
+                    $rootUser = $env['ROOT_USER'] ?? null;
+                    $rootPass = $env['ROOT_PASS'] ?? null;
+                }
+            }
+
+            if ($rootUser && $rootPass && $param['login'] === $rootUser && $param['senha'] === $rootPass) {
+                // Autenticação Root bem-sucedida
+                TSession::setValue('userid', 0); // ID 0 ou 9999 para root
+                TSession::setValue('username', 'Administrador Root');
+                TSession::setValue('usertype', 'root');
+                
+                TScript::create("window.location = 'index.php?class=DashboardRoot'");
+                return;
+            }
+
             TTransaction::open('database');
 
             $usuario = Usuario::autenticar($param['login'], $param['senha']);

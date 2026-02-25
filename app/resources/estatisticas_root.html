@@ -1,0 +1,155 @@
+<!--[main]-->
+<div class="list-page-container">
+    <div class="list-page-header">
+        <div class="header-left">
+            <h1 class="page-title"><i class="fa fa-bar-chart"></i> Estatísticas por Gestor</h1>
+        </div>
+    </div>
+
+    <div class="list-card">
+        <div class="search-bar" style="padding: 20px;">
+            <div id="form_holder">
+                <!-- FORM_FIELDS -->
+            </div>
+        </div>
+
+        <div id="results_container" style="padding: 0 24px 24px 24px;">
+            <!--[result]-->
+            <div class="metrics-grid" style="margin-bottom: 30px;">
+                <div class="metric-item">
+                    <div class="metric-icon-small bg-blue-light"><i class="fa fa-file-text"></i></div>
+                    <div class="metric-data">
+                        <span class="metric-label">Total Entregas</span>
+                        <h3 class="metric-number">{$total_entregas}</h3>
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-icon-small bg-green-light"><i class="fa fa-check-circle"></i></div>
+                    <div class="metric-data">
+                        <span class="metric-label">Aprovadas</span>
+                        <h3 class="metric-number">{$total_aprovadas}</h3>
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-icon-small bg-yellow-light"><i class="fa fa-clock"></i></div>
+                    <div class="metric-data">
+                        <span class="metric-label">Pendentes</span>
+                        <h3 class="metric-number">{$total_pendentes}</h3>
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-icon-small bg-red-light"><i class="fa fa-times-circle"></i></div>
+                    <div class="metric-data">
+                        <span class="metric-label">Rejeitadas</span>
+                        <h3 class="metric-number">{$total_rejeitadas}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="datagrid-wrapper">
+                <!-- DATAGRID -->
+            </div>
+            <!--[/result]-->
+
+            <!--[empty]-->
+            <div style="text-align: center; padding: 40px; color: #6b7280;">
+                <i class="fa fa-info-circle" style="font-size: 40px; margin-bottom: 10px;"></i>
+                <p>Selecione um gestor acima para visualizar as estatísticas.</p>
+            </div>
+            <!--[/empty]-->
+        </div>
+    </div>
+</div>
+
+<style>
+    .list-page-container {
+        padding: 24px;
+        background: #f4f6f9;
+        min-height: 100vh;
+    }
+
+    .list-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .page-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1e3a5f;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .list-card {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e5e7eb;
+    }
+
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+
+    .metric-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px;
+        background: #f9fafb;
+        border-radius: 10px;
+    }
+
+    .metric-icon-small {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .bg-blue-light {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    .bg-green-light {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .bg-yellow-light {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .bg-red-light {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    .metric-label {
+        font-size: 12px;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        display: block;
+    }
+
+    .metric-number {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 4px 0 0 0;
+    }
+</style>
+<!--[/main]-->

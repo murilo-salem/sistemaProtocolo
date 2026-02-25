@@ -1,0 +1,30 @@
+<menu>
+    <menuitem label="Dashboard">
+        <icon>fa-dashboard</icon>
+        <action>DashboardRoot</action>
+    </menuitem>
+    
+    <menuitem label="Observabilidade">
+        <icon>fa-eye</icon>
+        <menu>
+            <menuitem label="Empresas">
+                <icon>fa-building</icon>
+                <action>EmpresaList</action>
+            </menuitem>
+            <menuitem label="Gestores e Clientes">
+                <icon>fa-users</icon>
+                <action>ClienteList</action>
+            </menuitem>
+        </menu>
+    </menuitem>
+
+    <menuitem label="Estatísticas">
+        <icon>fa-bar-chart</icon>
+        <action>EstatisticasRoot</action>
+    </menuitem>
+    
+    <menuitem label="Sair">
+        <icon>fa-sign-out</icon>
+        <action>LoginForm#method=onLogout</action>
+    </menuitem>
+</menu>

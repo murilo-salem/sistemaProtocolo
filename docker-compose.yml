@@ -8,6 +8,8 @@ services:
     restart: unless-stopped
     environment:
       OLLAMA_HOST: ollama
+      ROOT_USER: rootgeral
+      ROOT_PASS: 4aq5sw6de
     ports:
       - "80:80"
     volumes:

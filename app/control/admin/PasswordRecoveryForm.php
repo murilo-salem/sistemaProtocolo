@@ -188,37 +188,10 @@ class PasswordRecoveryForm extends TPage
                 $message .= "Este link expira em 24 horas.";
                 
                 try {
-                   // Load mail config
-                   $ini = parse_ini_file('app/config/mail.ini');
-                   
-                   require_once 'vendor/autoload.php';
-                   
-                   $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-                   $mail->isSMTP();
-                   $mail->Host       = $ini['host'];
-                   $mail->SMTPAuth   = (bool) $ini['auth'];
-                   $mail->Username   = $ini['user']; 
-                   $mail->Password   = $ini['pass'];
-                   $mail->SMTPSecure = $ini['secure'];
-                   $mail->Port       = $ini['port'];
-                   $mail->CharSet    = 'UTF-8';
-                   
-                   // Recipients
-                   $mail->setFrom($ini['from'], $ini['from_name']);
-                   $mail->addAddress($user->email, $user->nome);
-                   
-                   // Content
-                   $mail->isHTML(true);
-                   $mail->Subject = 'Recuperação de Senha';
-                   $mail->Body    = $message;
-                   $mail->AltBody = strip_tags($message);
-                   
-                   $mail->send();
-                   
+                   EmailService::send($user->email, $user->nome, 'Recuperação de Senha', $message);
                    new TMessage('info', "Email de recuperação enviado com sucesso para <b>{$user->email}</b>.<br>Verifique sua caixa de entrada (e spam).");
-                   
                 } catch (Exception $e) {
-                     new TMessage('error', 'Erro ao enviar email: ' . $mail->ErrorInfo);
+                   new TMessage('error', $e->getMessage());
                 }
             }
             else

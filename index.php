@@ -32,7 +32,9 @@ else
         $content = file_get_contents("app/templates/{$theme}/layout.html");
         // $menu_string = AdiantiMenuBuilder::parse('menu.xml', $theme);
         $user_type = TSession::getValue('usertype');
-        if ($user_type == 'gestor') {
+        if ($user_type == 'root') {
+            $menu_file = 'menu-root.xml';
+        } elseif ($user_type == 'gestor') {
             $menu_file = 'menu-gestor.xml';
         } else {
             $menu_file = 'menu-cliente.xml';

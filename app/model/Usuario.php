@@ -15,7 +15,13 @@ class Usuario extends TRecord
         parent::addAttribute('senha');
         parent::addAttribute('tipo');
         parent::addAttribute('ativo');
+        parent::addAttribute('gestor_id');
         parent::addAttribute('created_at');
+    }
+    
+    public function get_gestor()
+    {
+        return new Usuario($this->gestor_id);
     }
     
     public function get_projetos()
