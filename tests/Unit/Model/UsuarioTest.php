@@ -2,93 +2,65 @@
 
 namespace Tests\Unit\Model;
 
+use ClienteProjeto;
+use Usuario;
 use Tests\TestCase;
 
-/**
- * Testes unitários para o model Usuario
- */
 class UsuarioTest extends TestCase
 {
-    /**
-     * Testa que get_projetos retorna array vazio quando não há projetos
-     */
-    public function testGetProjetosReturnsEmptyArrayWhenNoProjects(): void
+    public function testGetGestorReturnsAssociatedUser(): void
     {
-        // Como estamos usando mocks, o resultado será sempre array vazio
-        // Em testes de integração, testaríamos com dados reais
-        $this->assertTrue(true); // Placeholder para estrutura
+        $this->seedRecords(Usuario::class, [
+            (object) ['id' => 2, 'nome' => 'Gestor A'],
+        ]);
+
+        $usuario = new Usuario();
+        $usuario->gestor_id = 2;
+
+        $gestor = $usuario->get_gestor();
+
+        $this->assertInstanceOf(Usuario::class, $gestor);
+        $this->assertSame(2, $gestor->id);
     }
-    
-    /**
-     * Testa validação de senha com password_verify
-     */
-    public function testPasswordVerificationWorks(): void
+
+    public function testGetProjetosReturnsLinksForCliente(): void
     {
-        $senha = 'minhasenha123';
-        $hash = password_hash($senha, PASSWORD_DEFAULT);
-        
-        $this->assertTrue(password_verify($senha, $hash));
-        $this->assertFalse(password_verify('senhaerrada', $hash));
+        $usuario = new Usuario();
+        $usuario->id = 15;
+
+        $this->seedRecords(ClienteProjeto::class, [
+            (object) ['id' => 1, 'cliente_id' => 15, 'projeto_id' => 9],
+            (object) ['id' => 2, 'cliente_id' => 15, 'projeto_id' => 10],
+            (object) ['id' => 3, 'cliente_id' => 99, 'projeto_id' => 11],
+        ]);
+
+        $links = $usuario->get_projetos();
+
+        $this->assertCount(2, $links);
+        $this->assertSame(9, $links[0]->projeto_id);
     }
-    
-    /**
-     * Testa que senha vazia não verifica
-     */
-    public function testEmptyPasswordDoesNotVerify(): void
+
+    public function testAutenticarReturnsUserForValidCredentials(): void
     {
-        $hash = password_hash('senha123', PASSWORD_DEFAULT);
-        
-        $this->assertFalse(password_verify('', $hash));
+        $hash = password_hash('Senha@123', PASSWORD_DEFAULT);
+        $this->seedRecords(Usuario::class, [
+            (object) ['id' => 1, 'login' => 'joao', 'senha' => $hash, 'ativo' => 1],
+        ]);
+
+        $result = Usuario::autenticar('joao', 'Senha@123');
+
+        $this->assertInstanceOf(Usuario::class, $result);
+        $this->assertSame(1, $result->id);
     }
-    
-    /**
-     * Testa criação de hash de senha
-     */
-    public function testPasswordHashCreatesValidHash(): void
+
+    public function testAutenticarFailsForInvalidPasswordOrInactiveUser(): void
     {
-        $senha = 'testeSenha@123';
-        $hash = password_hash($senha, PASSWORD_DEFAULT);
-        
-        $this->assertNotEquals($senha, $hash);
-        $this->assertGreaterThan(50, strlen($hash));
-    }
-    
-    /**
-     * Testa autenticar retorna false para usuário inexistente
-     * Nota: Requer mock do banco ou teste de integração
-     */
-    public function testAutenticarReturnsFalseForInvalidUser(): void
-    {
-        // Em ambiente de mock, Usuario::where retorna MockCriteria
-        // que por sua vez retorna null em first()
-        
-        // Simular comportamento esperado
-        $result = null; // Simula Usuario::autenticar('inexistente', 'senha')
-        
-        $this->assertNull($result);
-    }
-    
-    /**
-     * Testa que usuário inativo não pode autenticar
-     */
-    public function testInactiveUserCannotAuthenticate(): void
-    {
-        // Este teste valida a lógica de negócio esperada
-        $usuario = $this->createMockUsuario(['ativo' => 0]);
-        
-        $this->assertEquals(0, $usuario->ativo);
-    }
-    
-    /**
-     * Testa tipos de usuário válidos
-     */
-    public function testValidUserTypes(): void
-    {
-        $validTypes = ['admin', 'gestor', 'cliente'];
-        
-        foreach ($validTypes as $type) {
-            $usuario = $this->createMockUsuario(['tipo' => $type]);
-            $this->assertContains($usuario->tipo, $validTypes);
-        }
+        $this->seedRecords(Usuario::class, [
+            (object) ['id' => 1, 'login' => 'joao', 'senha' => password_hash('Senha@123', PASSWORD_DEFAULT), 'ativo' => 1],
+            (object) ['id' => 2, 'login' => 'maria', 'senha' => password_hash('Senha@123', PASSWORD_DEFAULT), 'ativo' => 0],
+        ]);
+
+        $this->assertFalse(Usuario::autenticar('joao', 'errada'));
+        $this->assertFalse(Usuario::autenticar('maria', 'Senha@123'));
     }
 }

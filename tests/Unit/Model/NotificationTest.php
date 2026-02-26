@@ -2,34 +2,36 @@
 
 namespace Tests\Unit\Model;
 
+use Notification;
 use Tests\TestCase;
 
 class NotificationTest extends TestCase
 {
-    public function testNotificationAttributes()
+    public function testMarkAsReadSetsTimestampAndPersists(): void
     {
-        $notification = new \stdClass();
-        $notification->system_user_id = 1;
-        $notification->type = 'info';
-        $notification->title = 'Test Title';
-        $notification->message = 'Test Message';
-        
-        $this->assertEquals(1, $notification->system_user_id);
-        $this->assertEquals('info', $notification->type);
-        $this->assertEquals('Test Title', $notification->title);
+        $this->seedRecords(Notification::class, [
+            (object) [
+                'id' => 5,
+                'system_user_id' => 1,
+                'title' => 'Nova mensagem',
+                'message' => 'Corpo',
+                'read_at' => null,
+            ],
+        ]);
+
+        $notification = new Notification(5);
+        $notification->markAsRead();
+
+        $updated = Notification::find(5);
+        $this->assertNotNull($updated->read_at);
+        $this->assertTrue($notification->isRead());
     }
-    
-    public function testIsRead()
+
+    public function testIsReadReturnsFalseWhenReadAtIsEmpty(): void
     {
-        // Mock object behavior
-        $notification = new \stdClass();
-        $notification->read_at = '2023-01-01 12:00:00';
-        
-        $isRead = !empty($notification->read_at);
-        $this->assertTrue($isRead);
-        
+        $notification = new Notification();
         $notification->read_at = null;
-        $isRead = !empty($notification->read_at);
-        $this->assertFalse($isRead);
+
+        $this->assertFalse($notification->isRead());
     }
 }

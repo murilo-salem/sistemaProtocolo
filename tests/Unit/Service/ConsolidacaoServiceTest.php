@@ -2,198 +2,254 @@
 
 namespace Tests\Unit\Service;
 
+use ConsolidacaoService;
+use Entrega;
+use ReflectionClass;
 use Tests\TestCase;
 
-/**
- * Testes unitários para ConsolidacaoService
- * 
- * Testa lógica isolada de consolidação sem dependência de banco.
- */
 class ConsolidacaoServiceTest extends TestCase
 {
-    /**
-     * Testa conversão UTF-8 para ISO-8859-1
-     */
-    public function testUtf8ConversionWorks(): void
+    private function setPrivate(object $target, string $property, $value): void
     {
-        $input = 'Consolidação de Documentos - Período 01/2026';
-        $expected = mb_convert_encoding($input, 'ISO-8859-1', 'UTF-8');
-        
-        $this->assertNotEquals($input, $expected);
-        $this->assertIsString($expected);
+        $ref = new ReflectionClass($target);
+        $prop = $ref->getProperty($property);
+        $prop->setAccessible(true);
+        $prop->setValue($target, $value);
     }
-    
-    /**
-     * Testa caracteres especiais na conversão
-     */
-    public function testSpecialCharacterConversion(): void
+
+    private function getPrivate(object $target, string $property)
     {
-        $specialChars = ['ç', 'ã', 'é', 'í', 'ó', 'ú', 'ñ'];
-        
-        foreach ($specialChars as $char) {
-            $converted = mb_convert_encoding($char, 'ISO-8859-1', 'UTF-8');
-            $this->assertNotEmpty($converted);
-        }
+        $ref = new ReflectionClass($target);
+        $prop = $ref->getProperty($property);
+        $prop->setAccessible(true);
+        return $prop->getValue($target);
     }
-    
-    /**
-     * Testa identificação de extensões de arquivo suportadas
-     */
-    public function testSupportedFileExtensions(): void
+
+    private function callPrivate(object $target, string $method, array $args = [])
     {
-        $supported = ['pdf', 'jpg', 'jpeg', 'png', 'gif'];
-        $unsupported = ['docx', 'xlsx', 'txt', 'zip'];
-        
-        foreach ($supported as $ext) {
-            $this->assertContains($ext, $supported);
-        }
-        
-        foreach ($unsupported as $ext) {
-            $this->assertNotContains($ext, $supported);
-        }
+        $ref = new ReflectionClass($target);
+        $m = $ref->getMethod($method);
+        $m->setAccessible(true);
+        return $m->invokeArgs($target, $args);
     }
-    
-    /**
-     * Testa extração de extensão de arquivo
-     */
-    public function testExtractFileExtension(): void
+
+    public function testConsolidarEntregaFailsWhenStatusIsNotApproved(): void
     {
-        $files = [
-            'documento.pdf' => 'pdf',
-            'imagem.PNG' => 'png',
-            'foto.JPEG' => 'jpeg',
-            'arquivo.teste.pdf' => 'pdf',
-        ];
-        
-        foreach ($files as $filename => $expectedExt) {
-            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-            $this->assertEquals($expectedExt, $ext);
-        }
-    }
-    
-    /**
-     * Testa geração de nome de arquivo consolidado
-     */
-    public function testConsolidatedFilenameGeneration(): void
-    {
-        $clienteId = 1;
-        $projetoId = 2;
-        $timestamp = time();
-        
-        $filename = "Consolidado_{$clienteId}_{$projetoId}_{$timestamp}.pdf";
-        
-        $this->assertStringStartsWith('Consolidado_', $filename);
-        $this->assertStringEndsWith('.pdf', $filename);
-        $this->assertStringContainsString("_{$clienteId}_", $filename);
-    }
-    
-    /**
-     * Testa criação de caminho de pasta consolidada
-     */
-    public function testConsolidatedFolderPathGeneration(): void
-    {
-        $ano = 2026;
-        $mes = 2;
-        
-        $path = "files/consolidados/{$ano}/{$mes}";
-        
-        $this->assertEquals('files/consolidados/2026/2', $path);
-    }
-    
-    /**
-     * Testa cálculo de paginação básica
-     */
-    public function testBasicPaginationCalculation(): void
-    {
-        // Simular documentos com suas páginas
-        $documentos = [
-            'Doc 1' => ['paginas' => 3],
-            'Doc 2' => ['paginas' => 5],
-            'Doc 3' => ['paginas' => 2],
-        ];
-        
-        // Capa = 1, Sumário = 1, Total = 2 páginas iniciais
-        $paginaInicial = 3; // Primeira página após capa e sumário
-        $paginacao = [];
-        
-        foreach ($documentos as $nome => $info) {
-            $paginacao[$nome] = $paginaInicial;
-            $paginaInicial += $info['paginas'];
-        }
-        
-        $this->assertEquals(3, $paginacao['Doc 1']);
-        $this->assertEquals(6, $paginacao['Doc 2']);
-        $this->assertEquals(11, $paginacao['Doc 3']);
-    }
-    
-    /**
-     * Testa formatação de linha de sumário
-     */
-    public function testSummaryLineFormat(): void
-    {
-        $docName = 'Contrato Social';
-        $pageNum = 5;
-        
-        $line = "{$docName} ............ pág. {$pageNum}";
-        
-        $this->assertStringContainsString($docName, $line);
-        $this->assertStringContainsString("pág. {$pageNum}", $line);
-    }
-    
-    /**
-     * Testa resultado de consolidação bem sucedida
-     */
-    public function testSuccessfulConsolidationResult(): void
-    {
-        $result = [
-            'success' => true,
-            'arquivo' => 'files/consolidados/2026/2/Consolidado_1_1_123456.pdf',
-            'erros' => []
-        ];
-        
-        $this->assertTrue($result['success']);
-        $this->assertNotEmpty($result['arquivo']);
-        $this->assertEmpty($result['erros']);
-    }
-    
-    /**
-     * Testa resultado de consolidação com erro
-     */
-    public function testFailedConsolidationResult(): void
-    {
-        $result = [
-            'success' => false,
-            'arquivo' => null,
-            'erros' => ['Apenas entregas aprovadas podem ser consolidadas']
-        ];
-        
+        $this->seedRecords(Entrega::class, [
+            (object) [
+                'id' => 1,
+                'cliente_id' => 1,
+                'projeto_id' => 1,
+                'status' => 'pendente',
+                'documentos_json' => '{"Doc":"a.pdf"}',
+                'mes_referencia' => 2,
+                'ano_referencia' => 2026,
+            ],
+        ]);
+
+        $service = new ConsolidacaoService();
+        $result = $service->consolidarEntrega(1);
+
         $this->assertFalse($result['success']);
-        $this->assertNull($result['arquivo']);
-        $this->assertNotEmpty($result['erros']);
+        $this->assertSame('Apenas entregas aprovadas podem ser consolidadas', $result['erros'][0]);
     }
-    
-    /**
-     * Testa cálculo de proporção de imagem
-     */
-    public function testImageAspectRatioCalculation(): void
+
+    public function testConsolidarEntregaFailsWhenNoDocuments(): void
     {
-        // Imagem 800x600 (landscape)
-        $width = 800;
-        $height = 600;
-        $maxW = 190;
-        $maxH = 240;
-        
-        $ratio = $width / $height;
-        
-        if ($maxW / $maxH > $ratio) {
-            $finalW = $maxH * $ratio;
-            $finalH = $maxH;
-        } else {
-            $finalW = $maxW;
-            $finalH = $maxW / $ratio;
-        }
-        
-        $this->assertLessThanOrEqual($maxW, $finalW);
-        $this->assertLessThanOrEqual($maxH, $finalH);
+        $this->seedRecords(Entrega::class, [
+            (object) [
+                'id' => 2,
+                'cliente_id' => 1,
+                'projeto_id' => 1,
+                'status' => 'aprovado',
+                'documentos_json' => '{}',
+                'mes_referencia' => 2,
+                'ano_referencia' => 2026,
+            ],
+        ]);
+
+        $service = new ConsolidacaoService();
+        $result = $service->consolidarEntrega(2);
+
+        $this->assertFalse($result['success']);
+        $this->assertSame('Nenhum documento encontrado para consolidar.', $result['erros'][0]);
     }
+
+    public function testContarPaginasPdfUsesCountFromRawContentFallback(): void
+    {
+        $tmp = APP_ROOT . '/tmp/fake-pages.pdf';
+        file_put_contents($tmp, '%PDF-1.4 /Count 7 >>');
+
+        $service = new ConsolidacaoService();
+        $method = (new ReflectionClass($service))->getMethod('contarPaginasPdf');
+        $method->setAccessible(true);
+
+        $count = $method->invoke($service, $tmp);
+
+        unlink($tmp);
+        $this->assertSame(7, $count);
+    }
+
+    public function testUtf8PrivateHelperConvertsString(): void
+    {
+        $service = new ConsolidacaoService();
+        $converted = $this->callPrivate($service, 'utf8', ['Consolidacao']);
+
+        $this->assertIsString($converted);
+        $this->assertNotSame('', $converted);
+    }
+
+    public function testCalcularPaginacaoHandlesPdfImageUnsupportedAndMissingFiles(): void
+    {
+        $pdf = APP_ROOT . '/tmp/paginas.pdf';
+        $img = APP_ROOT . '/tmp/paginas.png';
+        $txt = APP_ROOT . '/tmp/paginas.txt';
+        $missing = APP_ROOT . '/tmp/inexistente.pdf';
+
+        file_put_contents($pdf, '%PDF-1.4 /Count 3 >>');
+        file_put_contents($txt, 'conteudo');
+        file_put_contents($img, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7x2pQAAAAASUVORK5CYII='));
+
+        $service = new ConsolidacaoService();
+        $this->setPrivate($service, 'documentos', [
+            'PDF A' => $pdf,
+            'IMG B' => $img,
+            'TXT C' => $txt,
+            'MISSING D' => $missing,
+        ]);
+
+        $this->callPrivate($service, 'calcularPaginacao', [false]);
+        $paginacao = $this->getPrivate($service, 'paginacao');
+        $erros = $this->getPrivate($service, 'erros');
+
+        $this->assertSame(3, $paginacao['PDF A']['paginas']);
+        $this->assertSame(1, $paginacao['IMG B']['paginas']);
+        $this->assertSame(1, $paginacao['TXT C']['paginas']);
+        $this->assertNotEmpty($erros);
+
+        @unlink($pdf);
+        @unlink($img);
+        @unlink($txt);
+    }
+
+    public function testAdicionarCapaAndSumarioRenderIntoPdfObject(): void
+    {
+        $service = new ConsolidacaoService();
+        $this->setPrivate($service, 'cliente', (object) ['nome' => 'Cliente Teste']);
+        $this->setPrivate($service, 'projeto', (object) ['nome' => 'Projeto Teste']);
+        $this->setPrivate($service, 'entrega', (object) [
+            'mes_referencia' => 2,
+            'ano_referencia' => 2026,
+            'data_aprovacao' => '2026-02-25 12:00:00',
+        ]);
+        $this->setPrivate($service, 'documentos', ['Doc 1' => 'a.pdf', 'Doc 2' => 'b.pdf']);
+        $this->setPrivate($service, 'paginacao', [
+            'Doc 1' => ['pagina_inicial' => 3],
+            'Doc 2' => ['pagina_inicial' => 5],
+        ]);
+
+        $pdf = new FakePdfDocument();
+        $this->callPrivate($service, 'adicionarCapa', [$pdf]);
+        $this->callPrivate($service, 'adicionarSumario', [$pdf]);
+
+        $this->assertGreaterThanOrEqual(2, $pdf->pages);
+        $this->assertNotEmpty($pdf->cells);
+    }
+
+    public function testProcessarDocumentosAddsPagesForDifferentTypes(): void
+    {
+        $pdfFile = APP_ROOT . '/tmp/processo.pdf';
+        $imgFile = APP_ROOT . '/tmp/processo.png';
+        $txtFile = APP_ROOT . '/tmp/processo.txt';
+        $missing = APP_ROOT . '/tmp/processo-missing.pdf';
+
+        file_put_contents($pdfFile, '%PDF-1.4 /Count 2 >>');
+        file_put_contents($txtFile, 'abc');
+        file_put_contents($imgFile, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7x2pQAAAAASUVORK5CYII='));
+
+        $service = new ConsolidacaoService();
+        $this->setPrivate($service, 'documentos', [
+            'PDF' => $pdfFile,
+            'IMG' => $imgFile,
+            'TXT' => $txtFile,
+            'MISS' => $missing,
+        ]);
+
+        $pdf = new FakePdfDocument();
+        $this->callPrivate($service, 'processarDocumentos', [$pdf, false]);
+
+        $this->assertGreaterThanOrEqual(5, $pdf->pages);
+
+        @unlink($pdfFile);
+        @unlink($imgFile);
+        @unlink($txtFile);
+    }
+
+    public function testImportarPaginasPdfUsesTemplateFlow(): void
+    {
+        $service = new ConsolidacaoService();
+        $pdf = new FakePdfDocument();
+
+        $this->callPrivate($service, 'importarPaginasPdf', [$pdf, APP_ROOT . '/tmp/qualquer.pdf', 'Doc']);
+
+        $this->assertSame(2, $pdf->templateUseCount);
+        $this->assertGreaterThanOrEqual(2, $pdf->pages);
+    }
+
+    public function testPreprocessarPdfComGhostscriptReturnsNullWhenUnavailableOrFails(): void
+    {
+        $service = new ConsolidacaoService();
+        $result = $this->callPrivate($service, 'preprocessarPdfComGhostscript', [APP_ROOT . '/tmp/inexistente.pdf']);
+        $this->assertNull($result);
+    }
+
+    public function testNotificarClienteCreatesNotificationRecords(): void
+    {
+        \TSession::setValue('userid', 500);
+
+        $service = new ConsolidacaoService();
+        $this->setPrivate($service, 'entrega', (object) [
+            'id' => 999,
+            'cliente_id' => 77,
+            'mes_referencia' => 2,
+            'ano_referencia' => 2026,
+        ]);
+
+        $this->callPrivate($service, 'notificarCliente');
+
+        $notifs = \Notification::where('system_user_id', '=', 77)->load();
+        $systemNotifs = \SystemNotification::where('system_user_id', '=', 77)->load();
+
+        $this->assertNotEmpty($notifs);
+        $this->assertNotEmpty($systemNotifs);
+    }
+}
+
+class FakePdfDocument
+{
+    public $pages = 0;
+    public $y = 10;
+    public $cells = [];
+    public $templateUseCount = 0;
+
+    public function SetAutoPageBreak($enabled, $margin = 0) {}
+    public function AddPage() { $this->pages++; $this->y = 10; }
+    public function SetDrawColor($r, $g = null, $b = null) {}
+    public function SetLineWidth($w) {}
+    public function Rect($x, $y, $w, $h, $style = '') {}
+    public function SetFont($family, $style = '', $size = 0) {}
+    public function SetTextColor($r, $g = null, $b = null) {}
+    public function Ln($h = null) { $this->y += $h ?? 5; }
+    public function Cell($w, $h = 0, $txt = '', $border = 0, $ln = 0, $align = '') { $this->cells[] = $txt; if ($ln) { $this->y += $h ?: 5; } }
+    public function Line($x1, $y1, $x2, $y2) {}
+    public function SetY($y) { $this->y = $y; }
+    public function GetY() { return $this->y; }
+    public function MultiCell($w, $h, $txt, $border = 0, $align = '') { $this->cells[] = $txt; $this->y += $h ?: 5; }
+    public function GetStringWidth($txt) { return strlen((string) $txt) * 2; }
+    public function SetFillColor($r, $g = null, $b = null) {}
+    public function Image($file, $x = null, $y = null, $w = 0, $h = 0) {}
+    public function setSourceFile($file) { return 2; }
+    public function importPage($pageNo) { return $pageNo; }
+    public function getTemplateSize($templateId) { return ['width' => 100, 'height' => 120]; }
+    public function useTemplate($templateId, $x = null, $y = null, $w = null, $h = null) { $this->templateUseCount++; }
 }

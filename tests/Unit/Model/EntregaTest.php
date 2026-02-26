@@ -2,178 +2,59 @@
 
 namespace Tests\Unit\Model;
 
+use Entrega;
 use Tests\TestCase;
 
-/**
- * Testes unitários para o model Entrega
- * 
- * Foca nos helper methods: isConsolidado(), podeConsolidar(), get_documentos()
- */
 class EntregaTest extends TestCase
 {
-    /**
-     * Testa isConsolidado retorna true quando consolidado = 1
-     */
-    public function testIsConsolidadoReturnsTrueWhenConsolidated(): void
+    public function testSetAndGetDocumentosRoundTrip(): void
     {
-        $entrega = $this->createMockEntrega(['consolidado' => 1]);
-        
-        // Simular lógica do método
-        $isConsolidado = !empty($entrega->consolidado) && $entrega->consolidado == 1;
-        
-        $this->assertTrue($isConsolidado);
+        $entrega = new Entrega();
+        $docs = [
+            'Contrato Social' => 'files/contrato.pdf',
+            'RG' => 'files/rg.png',
+        ];
+
+        $entrega->set_documentos($docs);
+
+        $this->assertSame($docs, $entrega->get_documentos());
+        $this->assertStringContainsString('Contrato Social', $entrega->documentos_json);
     }
-    
-    /**
-     * Testa isConsolidado retorna false quando consolidado = 0
-     */
-    public function testIsConsolidadoReturnsFalseWhenNotConsolidated(): void
+
+    public function testGetDocumentosReturnsEmptyArrayForInvalidJson(): void
     {
-        $entrega = $this->createMockEntrega(['consolidado' => 0]);
-        
-        $isConsolidado = !empty($entrega->consolidado) && $entrega->consolidado == 1;
-        
-        $this->assertFalse($isConsolidado);
+        $entrega = new Entrega();
+        $entrega->documentos_json = '{invalid';
+
+        $this->assertSame([], $entrega->get_documentos());
     }
-    
-    /**
-     * Testa isConsolidado retorna false quando consolidado é null
-     */
-    public function testIsConsolidadoReturnsFalseWhenNull(): void
+
+    public function testIsConsolidadoAndPodeConsolidarRules(): void
     {
-        $entrega = $this->createMockEntrega(['consolidado' => null]);
-        
-        $isConsolidado = !empty($entrega->consolidado) && $entrega->consolidado == 1;
-        
-        $this->assertFalse($isConsolidado);
+        $entrega = new Entrega();
+        $entrega->status = 'aprovado';
+        $entrega->consolidado = 0;
+
+        $this->assertFalse($entrega->isConsolidado());
+        $this->assertTrue($entrega->podeConsolidar());
+
+        $entrega->consolidado = 1;
+        $this->assertTrue($entrega->isConsolidado());
+        $this->assertFalse($entrega->podeConsolidar());
     }
-    
-    /**
-     * Testa podeConsolidar retorna true para aprovado não consolidado
-     */
-    public function testPodeConsolidarReturnsTrueForApprovedNotConsolidated(): void
+
+    public function testGetArquivoConsolidadoReturnsPathOnlyIfExists(): void
     {
-        $entrega = $this->createMockEntrega([
-            'status' => 'aprovado',
-            'consolidado' => 0
-        ]);
-        
-        $isConsolidado = !empty($entrega->consolidado) && $entrega->consolidado == 1;
-        $podeConsolidar = $entrega->status == 'aprovado' && !$isConsolidado;
-        
-        $this->assertTrue($podeConsolidar);
-    }
-    
-    /**
-     * Testa podeConsolidar retorna false para aprovado já consolidado
-     */
-    public function testPodeConsolidarReturnsFalseForAlreadyConsolidated(): void
-    {
-        $entrega = $this->createMockEntrega([
-            'status' => 'aprovado',
-            'consolidado' => 1
-        ]);
-        
-        $isConsolidado = !empty($entrega->consolidado) && $entrega->consolidado == 1;
-        $podeConsolidar = $entrega->status == 'aprovado' && !$isConsolidado;
-        
-        $this->assertFalse($podeConsolidar);
-    }
-    
-    /**
-     * Testa podeConsolidar retorna false para pendente
-     */
-    public function testPodeConsolidarReturnsFalseForPending(): void
-    {
-        $entrega = $this->createMockEntrega([
-            'status' => 'pendente',
-            'consolidado' => 0
-        ]);
-        
-        $podeConsolidar = $entrega->status == 'aprovado';
-        
-        $this->assertFalse($podeConsolidar);
-    }
-    
-    /**
-     * Testa get_documentos com JSON válido
-     */
-    public function testGetDocumentosWithValidJson(): void
-    {
-        $docs = ['Documento 1' => 'path/to/doc1.pdf', 'Documento 2' => 'path/to/doc2.pdf'];
-        $json = json_encode($docs);
-        
-        $result = json_decode($json, true) ?: [];
-        
-        $this->assertIsArray($result);
-        $this->assertCount(2, $result);
-        $this->assertArrayHasKey('Documento 1', $result);
-    }
-    
-    /**
-     * Testa get_documentos com JSON vazio
-     */
-    public function testGetDocumentosWithEmptyJson(): void
-    {
-        $json = '{}';
-        
-        $result = json_decode($json, true) ?: [];
-        
-        $this->assertIsArray($result);
-        $this->assertEmpty($result);
-    }
-    
-    /**
-     * Testa get_documentos com JSON inválido
-     */
-    public function testGetDocumentosWithInvalidJson(): void
-    {
-        $json = 'invalid json';
-        
-        $result = json_decode($json, true) ?: [];
-        
-        $this->assertIsArray($result);
-        $this->assertEmpty($result);
-    }
-    
-    /**
-     * Testa get_documentos com null
-     */
-    public function testGetDocumentosWithNull(): void
-    {
-        $json = null;
-        
-        $result = json_decode($json, true) ?: [];
-        
-        $this->assertIsArray($result);
-        $this->assertEmpty($result);
-    }
-    
-    /**
-     * Testa status válidos de entrega
-     */
-    public function testValidEntregaStatuses(): void
-    {
-        $validStatuses = ['pendente', 'em_analise', 'aprovado', 'rejeitado'];
-        
-        foreach ($validStatuses as $status) {
-            $entrega = $this->createMockEntrega(['status' => $status]);
-            $this->assertContains($entrega->status, $validStatuses);
-        }
-    }
-    
-    /**
-     * Testa formatação correta de mês/ano de referência
-     */
-    public function testReferenceMonthYearFormat(): void
-    {
-        $entrega = $this->createMockEntrega([
-            'mes_referencia' => 2,
-            'ano_referencia' => 2026
-        ]);
-        
-        $formatted = str_pad($entrega->mes_referencia, 2, '0', STR_PAD_LEFT) . '/' . $entrega->ano_referencia;
-        
-        $this->assertEquals('02/2026', $formatted);
+        $path = APP_ROOT . '/tmp/test-consolidado.pdf';
+        file_put_contents($path, 'pdf');
+
+        $entrega = new Entrega();
+        $entrega->consolidado = 1;
+        $entrega->arquivo_consolidado = $path;
+
+        $this->assertSame($path, $entrega->getArquivoConsolidado());
+
+        unlink($path);
+        $this->assertNull($entrega->getArquivoConsolidado());
     }
 }
