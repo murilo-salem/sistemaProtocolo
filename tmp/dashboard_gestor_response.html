@@ -1,0 +1,593 @@
+<div page-name="DashboardGestor" page_name="DashboardGestor"><div style="width: 100%">
+<div style="clear:both"><div id="div_breadcrumbs"><ol class="tbreadcrumb"><li><span>Dashboard</span>
+</li>
+</ol>
+</div>
+</div>
+<div style="clear:both"><!-- Dashboard Gestor - Design Moderno -->
+
+<div class="dashboard-modern">
+    <!-- ======= KPI CARDS - Grid Horizontal ======= -->
+    <div class="kpi-grid">
+        <!-- Card: Clientes Ativos -->
+        <div class="kpi-card">
+            <div class="kpi-icon icon-blue">
+                <i class="fa fa-users"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Clientes Ativos</span>
+                <h2 class="kpi-value">1</h2>
+            </div>
+        </div>
+
+        <!-- Card: Projetos Ativos -->
+        <div class="kpi-card">
+            <div class="kpi-icon icon-green">
+                <i class="fa fa-briefcase"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Projetos Ativos</span>
+                <h2 class="kpi-value">0</h2>
+            </div>
+        </div>
+
+        <!-- Card: Entregas Pendentes -->
+        <div class="kpi-card">
+            <div class="kpi-icon icon-yellow">
+                <i class="fa fa-clock"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Entregas Pendentes</span>
+                <h2 class="kpi-value">0</h2>
+            </div>
+        </div>
+
+        <!-- Card: Entregas Aprovadas -->
+        <div class="kpi-card">
+            <div class="kpi-icon icon-emerald">
+                <i class="fa fa-check-circle"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Aprovadas (Mês)</span>
+                <h2 class="kpi-value">0</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======= VISÃO GERAL + ALERTAS ======= -->
+    <div class="dashboard-row">
+        <!-- Visão Geral do Mês -->
+        <div class="dashboard-card card-wide">
+            <div class="card-header-modern">
+                <div class="card-title-group">
+                    <i class="fa fa-bar-chart"></i>
+                    <h3>Visão Geral do Mês</h3>
+                </div>
+            </div>
+            <div class="card-body-modern">
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-icon-small bg-blue-light">
+                            <i class="fa fa-file-text"></i>
+                        </div>
+                        <div class="metric-data">
+                            <span class="metric-label">Total de Entregas</span>
+                            <h3 class="metric-number">0</h3>
+                        </div>
+                    </div>
+
+                    <div class="metric-item">
+                        <div class="metric-icon-small bg-yellow-light">
+                            <i class="fa fa-hourglass-half"></i>
+                        </div>
+                        <div class="metric-data">
+                            <span class="metric-label">Em Análise</span>
+                            <h3 class="metric-number">0</h3>
+                        </div>
+                    </div>
+
+                    <div class="metric-item">
+                        <div class="metric-icon-small bg-red-light">
+                            <i class="fa fa-times-circle"></i>
+                        </div>
+                        <div class="metric-data">
+                            <span class="metric-label">Rejeitadas</span>
+                            <h3 class="metric-number">0</h3>
+                        </div>
+                    </div>
+
+                    <div class="metric-item">
+                        <div class="metric-icon-small bg-green-light">
+                            <i class="fa fa-percent"></i>
+                        </div>
+                        <div class="metric-data">
+                            <span class="metric-label">Taxa de Aprovação</span>
+                            <h3 class="metric-number">0%</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Atenção Necessária -->
+        <div class="dashboard-card">
+            <div class="card-header-modern">
+                <div class="card-title-group">
+                    <i class="fa fa-exclamation-circle"></i>
+                    <h3>Atenção Necessária</h3>
+                </div>
+            </div>
+            <div class="card-body-modern">
+                <div class="alert-list">
+                    <div class="alert-item alert-warning">
+                        <div class="alert-icon">
+                            <i class="fa fa-clock"></i>
+                        </div>
+                        <div class="alert-content">
+                            <span class="alert-count">0</span>
+                            <span class="alert-text">entregas aguardando envio</span>
+                        </div>
+                    </div>
+
+                    <div class="alert-item alert-info">
+                        <div class="alert-icon">
+                            <i class="fa fa-search"></i>
+                        </div>
+                        <div class="alert-content">
+                            <span class="alert-count">0</span>
+                            <span class="alert-text">entregas para validar</span>
+                        </div>
+                    </div>
+
+                    <div class="alert-item alert-danger">
+                        <div class="alert-icon">
+                            <i class="fa fa-warning"></i>
+                        </div>
+                        <div class="alert-content">
+                            <span class="alert-count">0</span>
+                            <span class="alert-text">entregas com atraso</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======= AÇÕES RÁPIDAS ======= -->
+    <div class="dashboard-card">
+        <div class="card-header-modern">
+            <div class="card-title-group">
+                <i class="fa fa-rocket"></i>
+                <h3>Ações Rápidas</h3>
+            </div>
+        </div>
+        <div class="card-body-modern">
+            <div class="quick-actions">
+                <a href="index.php?class=ProjetoForm" class="action-btn action-btn-primary">
+                    <i class="fa fa-plus-circle"></i>
+                    <span>Novo Projeto</span>
+                </a>
+                <a href="index.php?class=ClienteForm" class="action-btn action-btn-secondary">
+                    <i class="fa fa-user-plus"></i>
+                    <span>Novo Cliente</span>
+                </a>
+                <a href="index.php?class=EntregaList" class="action-btn action-btn-outline">
+                    <i class="fa fa-list"></i>
+                    <span>Ver Entregas</span>
+                </a>
+                <a href="index.php?class=HistoricoList" class="action-btn action-btn-outline">
+                    <i class="fa fa-history"></i>
+                    <span>Histórico</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* ===== DASHBOARD MODERN STYLES ===== */
+    .dashboard-modern {
+        padding: 24px;
+        background: #f4f6f9;
+        min-height: calc(100vh - 120px);
+    }
+
+    /* ===== KPI CARDS GRID ===== */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .kpi-card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e5e7eb;
+        height: auto;
+        transition: all 0.2s ease;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .kpi-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+    .kpi-icon.icon-blue {
+        background: rgba(30, 58, 95, 0.1);
+        color: #1e3a5f;
+    }
+
+    .kpi-icon.icon-green {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .kpi-icon.icon-yellow {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .kpi-icon.icon-emerald {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .kpi-content {
+        flex: 1;
+    }
+
+    .kpi-label {
+        font-size: 13px;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+        display: block;
+    }
+
+    .kpi-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 4px 0 0 0;
+        line-height: 1;
+    }
+
+    /* ===== DASHBOARD ROW ===== */
+    .dashboard-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    /* ===== CARDS MODERNOS ===== */
+    .dashboard-card {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e5e7eb;
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+
+    .dashboard-card.card-wide {
+        margin-bottom: 0;
+    }
+
+    .card-header-modern {
+        padding: 18px 24px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #ffffff;
+    }
+
+    .card-title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .card-title-group i {
+        font-size: 18px;
+        color: #4a90d9;
+    }
+
+    .card-title-group h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .card-body-modern {
+        padding: 24px;
+    }
+
+    /* ===== METRICS GRID ===== */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+
+    .metric-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px;
+        background: #f9fafb;
+        border-radius: 10px;
+    }
+
+    .metric-icon-small {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .bg-blue-light {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    .bg-yellow-light {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .bg-red-light {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    .bg-green-light {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .metric-data {
+        flex: 1;
+    }
+
+    .metric-label {
+        font-size: 12px;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        display: block;
+    }
+
+    .metric-number {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 4px 0 0 0;
+    }
+
+    /* ===== ALERT LIST ===== */
+    .alert-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .alert-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 16px;
+        border-radius: 10px;
+        border-left: 4px solid;
+    }
+
+    .alert-item.alert-warning {
+        background: rgba(245, 158, 11, 0.08);
+        border-color: #f59e0b;
+    }
+
+    .alert-item.alert-info {
+        background: rgba(59, 130, 246, 0.08);
+        border-color: #3b82f6;
+    }
+
+    .alert-item.alert-danger {
+        background: rgba(239, 68, 68, 0.08);
+        border-color: #ef4444;
+    }
+
+    .alert-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+
+    .alert-warning .alert-icon {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+    }
+
+    .alert-info .alert-icon {
+        background: rgba(59, 130, 246, 0.15);
+        color: #3b82f6;
+    }
+
+    .alert-danger .alert-icon {
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
+    }
+
+    .alert-content {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+    }
+
+    .alert-count {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .alert-text {
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    /* ===== QUICK ACTIONS ===== */
+    .quick-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: 2px solid transparent;
+    }
+
+    .action-btn i {
+        font-size: 16px;
+    }
+
+    .action-btn-primary {
+        background: #1e3a5f;
+        color: white;
+    }
+
+    .action-btn-primary:hover {
+        background: #2d5a87;
+        color: white;
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .action-btn-secondary {
+        background: #10b981;
+        color: white;
+    }
+
+    .action-btn-secondary:hover {
+        background: #0ea572;
+        color: white;
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .action-btn-outline {
+        background: transparent;
+        border-color: #e5e7eb;
+        color: #374151;
+    }
+
+    .action-btn-outline:hover {
+        border-color: #4a90d9;
+        color: #4a90d9;
+        background: rgba(74, 144, 217, 0.05);
+        text-decoration: none;
+    }
+
+    /* ===== RESPONSIVIDADE ===== */
+    @media (max-width: 1200px) {
+        .kpi-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .metrics-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .dashboard-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-modern {
+            padding: 16px;
+        }
+
+        .kpi-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .metrics-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .quick-actions {
+            flex-direction: column;
+        }
+
+        .action-btn {
+            justify-content: center;
+        }
+    }
+</style>
+</div>
+<div style="clear:both"><div class="card panel">
+<div class="card-header panel-heading" style="">
+<div class="card-title panel-title"><div style="width: 100%">Calendario de Entregas</div>
+</div>
+<div class="header-actions"></div>
+</div>
+<div class="card-body panel-body"><script type='text/javascript'>tfullcalendar_start( 'tfullcalendar_1647371721', false, 'dayGridMonth', '2026-02-26', 'pt', null, '', '', '', '00:00', '23:59', [], true, true, '[]', true);</script><div class="tfullcalendar" id="tfullcalendar_1647371721"></div>
+</div>
+</div>
+</div>
+<div style="clear:both"><div class="card panel">
+<div class="card-header panel-heading" style="">
+<div class="card-title panel-title"><div style="width: 100%">Entregas Aguardando Validacao</div>
+</div>
+<div class="header-actions"></div>
+</div>
+<div class="card-body panel-body"><table class="table table-striped table-hover" id="tdatagrid_1547296617" widget="bootstrapdatagridwrapper" type="bootstrap" width="100%" style=";border-collapse:collapse">
+<thead><tr>
+<th class="tdatagrid_action" style="padding:0" width="28px"><span style="min-width:calc(28px - 2px);display:block"></span></th>
+<th class="tdatagrid_col" style="text-align:center;user-select:none" width="58px">ID</th>
+<th class="tdatagrid_col" style="text-align:left;user-select:none">Cliente</th>
+<th class="tdatagrid_col" style="text-align:left;user-select:none">Projeto</th>
+<th class="tdatagrid_col" style="text-align:center;user-select:none">Mes/Ano</th>
+<th class="tdatagrid_col" style="text-align:center;user-select:none">Status</th>
+<th class="tdatagrid_col" style="text-align:center;user-select:none">Data Entrega</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>

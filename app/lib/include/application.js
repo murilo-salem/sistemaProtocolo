@@ -85,3 +85,24 @@ Adianti.onAfterLoad = function(url, data)
 
 // set select2 language
 $.fn.select2.defaults.set('language', $.fn.select2.amd.require("select2/i18n/pt"));
+
+// Guard for Adianti TFullCalendar when events payload comes as null.
+// Without this normalization, calendar init can fail and the widget is not rendered.
+(function () {
+    if (typeof tfullcalendar_start !== 'function') {
+        return;
+    }
+
+    var originalTFullCalendarStart = tfullcalendar_start;
+
+    tfullcalendar_start = function () {
+        var args = Array.prototype.slice.call(arguments);
+        var events = args[5];
+
+        if (events === null || events === undefined || events === '' || events === 'null') {
+            args[5] = [];
+        }
+
+        return originalTFullCalendarStart.apply(this, args);
+    };
+})();
