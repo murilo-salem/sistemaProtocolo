@@ -12,8 +12,23 @@ services:
       ROOT_PASS: 4aq5sw6de
     ports:
       - "80:80"
+    command: >
+      sh -lc "if [ -f /var/www/html/composer.lock ]; then
+        LOCK_HASH=$$(sha1sum /var/www/html/composer.lock | awk '{print $$1}');
+        INSTALLED_HASH=$$(cat /var/www/html/vendor/.composer-lock-hash 2>/dev/null || true);
+      else
+        LOCK_HASH='';
+        INSTALLED_HASH='';
+      fi;
+      if ! php -r \"require '/var/www/html/vendor/autoload.php';\" >/dev/null 2>&1 || [ \"$$LOCK_HASH\" != \"$$INSTALLED_HASH\" ]; then
+        git config --global --add safe.directory /var/www/html &&
+        COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --no-interaction --no-plugins --no-scripts --prefer-dist --optimize-autoloader &&
+        if [ -n \"$$LOCK_HASH\" ]; then echo \"$$LOCK_HASH\" > /var/www/html/vendor/.composer-lock-hash; fi;
+      fi;
+      apache2-foreground"
     volumes:
       - ./:/var/www/html
+      - vendor_data:/var/www/html/vendor
       - ./docker/database.ini:/var/www/html/app/config/database.ini
     depends_on:
       - db
@@ -55,3 +70,4 @@ networks:
 volumes:
   db_data:
   ollama_data:
+  vendor_data:

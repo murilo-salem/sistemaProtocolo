@@ -6,12 +6,12 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    $vendorDir . '/adianti/barcode-document',
-    $vendorDir . '/adianti/html-document',
-    $vendorDir . '/adianti/pdfdesigner',
-    $vendorDir . '/adianti/studio-forms',
-    $vendorDir . '/adianti/table-writers',
     $vendorDir . '/pablodalloglio/fpdf',
     $vendorDir . '/pablodalloglio/ole',
     $vendorDir . '/pablodalloglio/spreadsheet_excel_writer',
+    $vendorDir . '/adianti/pdfdesigner',
+    $vendorDir . '/adianti/barcode-document',
+    $vendorDir . '/adianti/html-document',
+    $vendorDir . '/adianti/studio-forms',
+    $vendorDir . '/adianti/table-writers',
 );
