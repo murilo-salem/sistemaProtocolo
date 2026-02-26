@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit4074d5b77a855dbfd71e43da22fa21e2
+class ComposerStaticInitadf492eac7ca34a1d955d9523fb4e20e
 {
     public static $files = array (
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
@@ -14,21 +14,21 @@ class ComposerStaticInit4074d5b77a855dbfd71e43da22fa21e2
     );
 
     public static $prefixLengthsPsr4 = array (
-        's' => 
+        's' =>
         array (
             'setasign\\Fpdi\\' => 14,
         ),
-        'T' => 
+        'T' =>
         array (
             'Tests\\' => 6,
         ),
-        'S' => 
+        'S' =>
         array (
             'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Svg\\' => 4,
             'Sabberworm\\CSS\\' => 15,
         ),
-        'P' => 
+        'P' =>
         array (
             'Psr\\Clock\\' => 10,
             'Picqer\\Barcode\\' => 15,
@@ -36,244 +36,244 @@ class ComposerStaticInit4074d5b77a855dbfd71e43da22fa21e2
             'ParagonIE\\ConstantTime\\' => 23,
             'PHPMailer\\PHPMailer\\' => 20,
         ),
-        'O' => 
+        'O' =>
         array (
             'OTPHP\\' => 6,
         ),
-        'M' => 
+        'M' =>
         array (
             'Masterminds\\' => 12,
         ),
-        'L' => 
+        'L' =>
         array (
             'Linfo\\' => 6,
         ),
-        'J' => 
+        'J' =>
         array (
             'Jfcherng\\Utility\\' => 17,
             'Jfcherng\\Diff\\' => 14,
         ),
-        'F' => 
+        'F' =>
         array (
             'FontLib\\' => 8,
             'Firebase\\JWT\\' => 13,
         ),
-        'D' => 
+        'D' =>
         array (
             'Dompdf\\' => 7,
             'Doctrine\\Instantiator\\' => 22,
             'DeepCopy\\' => 9,
             'DASPRiD\\Enum\\' => 13,
         ),
-        'B' => 
+        'B' =>
         array (
             'BaconQrCode\\' => 12,
         ),
-        'A' => 
+        'A' =>
         array (
             'Adianti\\Plugins\\' => 16,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'setasign\\Fpdi\\' => 
+        'setasign\\Fpdi\\' =>
         array (
             0 => __DIR__ . '/..' . '/setasign/fpdi/src',
         ),
-        'Tests\\' => 
+        'Tests\\' =>
         array (
             0 => __DIR__ . '/../..' . '/tests',
         ),
-        'Symfony\\Polyfill\\Mbstring\\' => 
+        'Symfony\\Polyfill\\Mbstring\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
         ),
-        'Svg\\' => 
+        'Svg\\' =>
         array (
             0 => __DIR__ . '/..' . '/dompdf/php-svg-lib/src/Svg',
         ),
-        'Sabberworm\\CSS\\' => 
+        'Sabberworm\\CSS\\' =>
         array (
             0 => __DIR__ . '/..' . '/sabberworm/php-css-parser/src',
         ),
-        'Psr\\Clock\\' => 
+        'Psr\\Clock\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/clock/src',
         ),
-        'Picqer\\Barcode\\' => 
+        'Picqer\\Barcode\\' =>
         array (
             0 => __DIR__ . '/..' . '/picqer/php-barcode-generator/src',
         ),
-        'PhpParser\\' => 
+        'PhpParser\\' =>
         array (
             0 => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser',
         ),
-        'ParagonIE\\ConstantTime\\' => 
+        'ParagonIE\\ConstantTime\\' =>
         array (
             0 => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src',
         ),
-        'PHPMailer\\PHPMailer\\' => 
+        'PHPMailer\\PHPMailer\\' =>
         array (
             0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
-        'OTPHP\\' => 
+        'OTPHP\\' =>
         array (
             0 => __DIR__ . '/..' . '/spomky-labs/otphp/src',
         ),
-        'Masterminds\\' => 
+        'Masterminds\\' =>
         array (
             0 => __DIR__ . '/..' . '/masterminds/html5/src',
         ),
-        'Linfo\\' => 
+        'Linfo\\' =>
         array (
             0 => __DIR__ . '/..' . '/linfo/linfo/src/Linfo',
         ),
-        'Jfcherng\\Utility\\' => 
+        'Jfcherng\\Utility\\' =>
         array (
             0 => __DIR__ . '/..' . '/jfcherng/php-mb-string/src',
             1 => __DIR__ . '/..' . '/jfcherng/php-color-output/src',
         ),
-        'Jfcherng\\Diff\\' => 
+        'Jfcherng\\Diff\\' =>
         array (
             0 => __DIR__ . '/..' . '/jfcherng/php-diff/src',
             1 => __DIR__ . '/..' . '/jfcherng/php-sequence-matcher/src',
         ),
-        'FontLib\\' => 
+        'FontLib\\' =>
         array (
             0 => __DIR__ . '/..' . '/dompdf/php-font-lib/src/FontLib',
         ),
-        'Firebase\\JWT\\' => 
+        'Firebase\\JWT\\' =>
         array (
             0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
         ),
-        'Dompdf\\' => 
+        'Dompdf\\' =>
         array (
             0 => __DIR__ . '/..' . '/dompdf/dompdf/src',
         ),
-        'Doctrine\\Instantiator\\' => 
+        'Doctrine\\Instantiator\\' =>
         array (
             0 => __DIR__ . '/..' . '/doctrine/instantiator/src/Doctrine/Instantiator',
         ),
-        'DeepCopy\\' => 
+        'DeepCopy\\' =>
         array (
             0 => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy',
         ),
-        'DASPRiD\\Enum\\' => 
+        'DASPRiD\\Enum\\' =>
         array (
             0 => __DIR__ . '/..' . '/dasprid/enum/src',
         ),
-        'BaconQrCode\\' => 
+        'BaconQrCode\\' =>
         array (
             0 => __DIR__ . '/..' . '/bacon/bacon-qr-code/src',
         ),
-        'Adianti\\Plugins\\' => 
+        'Adianti\\Plugins\\' =>
         array (
             0 => __DIR__ . '/..' . '/adianti/plugins/src',
         ),
     );
 
     public static $prefixesPsr0 = array (
-        'T' => 
+        'T' =>
         array (
-            'TUIBuilder' => 
+            'TUIBuilder' =>
             array (
                 0 => __DIR__ . '/..' . '/adianti/studio-forms',
             ),
-            'TTableWriterXLS' => 
+            'TTableWriterXLS' =>
             array (
                 0 => __DIR__ . '/..' . '/adianti/table-writers',
             ),
-            'TTableWriterRTF' => 
+            'TTableWriterRTF' =>
             array (
                 0 => __DIR__ . '/..' . '/adianti/table-writers',
             ),
-            'TTableWriterPDF' => 
+            'TTableWriterPDF' =>
             array (
                 0 => __DIR__ . '/..' . '/adianti/table-writers',
             ),
-            'TTableWriterHTML' => 
+            'TTableWriterHTML' =>
             array (
                 0 => __DIR__ . '/..' . '/adianti/table-writers',
             ),
-            'TPDFDesigner' => 
+            'TPDFDesigner' =>
             array (
                 0 => __DIR__ . '/..' . '/adianti/pdfdesigner',
             ),
-            'TAdiantiTableRow' => 
+            'TAdiantiTableRow' =>
             array (
                 0 => __DIR__ . '/..' . '/adianti/table-writers',
             ),
-            'TAdiantiTableCell' => 
+            'TAdiantiTableCell' =>
             array (
                 0 => __DIR__ . '/..' . '/adianti/table-writers',
             ),
-            'TAdiantiTable' => 
+            'TAdiantiTable' =>
             array (
                 0 => __DIR__ . '/..' . '/adianti/table-writers',
             ),
-            'TAdiantiStyle' => 
+            'TAdiantiStyle' =>
             array (
                 0 => __DIR__ . '/..' . '/adianti/table-writers',
             ),
-            'TAdiantiElement' => 
+            'TAdiantiElement' =>
             array (
                 0 => __DIR__ . '/..' . '/adianti/table-writers',
             ),
         ),
-        'S' => 
+        'S' =>
         array (
-            'Spreadsheet' => 
+            'Spreadsheet' =>
             array (
                 0 => __DIR__ . '/..' . '/pablodalloglio/spreadsheet_excel_writer',
             ),
-            'Smalot\\PdfParser\\' => 
+            'Smalot\\PdfParser\\' =>
             array (
                 0 => __DIR__ . '/..' . '/smalot/pdfparser/src',
             ),
         ),
-        'P' => 
+        'P' =>
         array (
-            'PHPRtfLite' => 
+            'PHPRtfLite' =>
             array (
                 0 => __DIR__ . '/..' . '/pablodalloglio/phprtflite/lib',
             ),
         ),
-        'O' => 
+        'O' =>
         array (
-            'OLE' => 
+            'OLE' =>
             array (
                 0 => __DIR__ . '/..' . '/pablodalloglio/ole',
             ),
         ),
-        'I' => 
+        'I' =>
         array (
-            'ITableWriter' => 
+            'ITableWriter' =>
             array (
                 0 => __DIR__ . '/..' . '/adianti/table-writers',
             ),
         ),
-        'F' => 
+        'F' =>
         array (
-            'FPDF' => 
+            'FPDF' =>
             array (
                 0 => __DIR__ . '/..' . '/pablodalloglio/fpdf',
             ),
         ),
-        'A' => 
+        'A' =>
         array (
-            'AdiantiUIBuilder' => 
+            'AdiantiUIBuilder' =>
             array (
                 0 => __DIR__ . '/..' . '/adianti/studio-forms',
             ),
-            'AdiantiPDFDesigner' => 
+            'AdiantiPDFDesigner' =>
             array (
                 0 => __DIR__ . '/..' . '/adianti/pdfdesigner',
             ),
-            'AdiantiHTMLDocumentParser' => 
+            'AdiantiHTMLDocumentParser' =>
             array (
                 0 => __DIR__ . '/..' . '/adianti/html-document',
             ),
-            'AdiantiBarcodeDocumentGenerator' => 
+            'AdiantiBarcodeDocumentGenerator' =>
             array (
                 0 => __DIR__ . '/..' . '/adianti/barcode-document',
             ),
@@ -936,10 +936,10 @@ class ComposerStaticInit4074d5b77a855dbfd71e43da22fa21e2
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit4074d5b77a855dbfd71e43da22fa21e2::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit4074d5b77a855dbfd71e43da22fa21e2::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit4074d5b77a855dbfd71e43da22fa21e2::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit4074d5b77a855dbfd71e43da22fa21e2::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitadf492eac7ca34a1d955d9523fb4e20e::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitadf492eac7ca34a1d955d9523fb4e20e::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInitadf492eac7ca34a1d955d9523fb4e20e::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInitadf492eac7ca34a1d955d9523fb4e20e::$classMap;
 
         }, null, ClassLoader::class);
     }

@@ -41,6 +41,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Install PHP dependencies (if composer.json exists)
 RUN if [ -f "composer.json" ]; then \
+    rm -rf vendor; \
+    git config --global --add safe.directory /var/www/html; \
+    export COMPOSER_ALLOW_SUPERUSER=1; \
     composer install --no-interaction --no-plugins --no-scripts --prefer-dist; \
     fi
 
