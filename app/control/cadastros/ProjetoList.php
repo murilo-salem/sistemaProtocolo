@@ -183,6 +183,9 @@ class ProjetoList extends TPage
             TTransaction::open('database');
             
             $criteria = new TCriteria;
+            // Show only base projects in Cadastros/Projetos.
+            // Client-specific cloned instances are stored with is_template = 0.
+            $criteria->add(new TFilter('is_template', '=', 1));
             
             // Apply quick filter
             $quickFilter = TSession::getValue('ProjetoList_quickfilter') ?? 'todos';
