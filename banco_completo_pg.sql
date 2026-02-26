@@ -9,7 +9,9 @@ CREATE TABLE usuario (
     senha VARCHAR(255) NOT NULL,
     tipo VARCHAR(20) NOT NULL, -- 'gestor' ou 'cliente'
     ativo CHAR(1) DEFAULT '1',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    gestor_id INT,
+    FOREIGN KEY (gestor_id) REFERENCES usuario(id)
 );
 
 CREATE TABLE company_templates (
@@ -140,9 +142,9 @@ CREATE TABLE chat_messages (
 );
 
 -- Usuário Admin Padrão (Login: admin / Senha: admin)
-INSERT INTO usuario (nome, email, login, senha, tipo, ativo) VALUES 
-('Gestor Admin', 'admin@sistema.com', 'admin', '$2y$10$Vp3QzysidOBSOrgIEYqzTe4uKxM9zYnaQSHJ1EzMhC9/XdPZPU6y2', 'gestor', '1');
+INSERT INTO usuario (nome, email, login, senha, tipo, ativo, gestor_id) VALUES 
+('Gestor Admin', 'admin@sistema.com', 'admin', '$2y$10$Vp3QzysidOBSOrgIEYqzTe4uKxM9zYnaQSHJ1EzMhC9/XdPZPU6y2', 'gestor', '1', NULL);
 
 -- Usuário Cliente Teste (Login: user / Senha: user)
-INSERT INTO usuario (nome, email, login, senha, tipo, ativo) VALUES 
-('Cliente Teste', 'cliente@sistema.com', 'user', '$2y$10$MSFdgncOkY7/oS3TG6fjpumA4w5u7HUQX3Z7cjoKNOXa/CxkeABqq', 'cliente', '1');
+INSERT INTO usuario (nome, email, login, senha, tipo, ativo, gestor_id) VALUES 
+('Cliente Teste', 'cliente@sistema.com', 'user', '$2y$10$MSFdgncOkY7/oS3TG6fjpumA4w5u7HUQX3Z7cjoKNOXa/CxkeABqq', 'cliente', '1', 1);
