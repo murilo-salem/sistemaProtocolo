@@ -1,0 +1,8 @@
+vendor
+coverage
+tmp
+.git
+.gitignore
+.phpunit.result.cache
+.idea
+.vscode

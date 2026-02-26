@@ -41,12 +41,14 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Install PHP dependencies (if composer.json exists)
 RUN if [ -f "composer.json" ]; then \
+    rm -rf vendor && \
     git config --global --add safe.directory /var/www/html && \
-    COMPOSER_ALLOW_SUPERUSER=1 composer install --no-interaction --no-plugins --no-scripts --prefer-dist; \
+    COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --no-interaction --no-plugins --no-scripts --prefer-dist --optimize-autoloader; \
     fi
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
+    && mkdir -p /var/www/html/app/output /var/www/html/tmp \
     && chmod -R 755 /var/www/html/app/output \
     && chmod -R 755 /var/www/html/tmp
 
